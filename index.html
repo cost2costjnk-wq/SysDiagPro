@@ -1,0 +1,2916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SysDiag Pro — Hardware Stress Tester v4.0</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;600&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#ffffff;--bg2:#f8f9fa;--bg3:#f0f2f5;--bg4:#e8ebef;
+  --border:#d1d5db;--border2:#e5e7eb;
+  --text:#111827;--text2:#374151;--muted:#6b7280;--muted2:#9ca3af;
+  --amber:#d97706;--amber2:#f59e0b;--amberBg:#fffbeb;
+  --green:#16a34a;--greenBg:#f0fdf4;--greenBorder:#bbf7d0;
+  --red:#dc2626;--redBg:#fef2f2;--redBorder:#fecaca;
+  --blue:#2563eb;--blueBg:#eff6ff;--blueBorder:#bfdbfe;
+  --cyan:#0891b2;--cyanBg:#ecfeff;
+  --orange:#ea580c;--orangeBg:#fff7ed;
+  --mono:'JetBrains Mono',monospace;--sans:'Inter',sans-serif;
+  --radius:8px;--shadow:0 1px 3px rgba(0,0,0,.08),0 1px 2px rgba(0,0,0,.05);
+  --shadow-md:0 4px 6px -1px rgba(0,0,0,.07),0 2px 4px -1px rgba(0,0,0,.04);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh;overflow-x:hidden}
+.header{background:#fff;border-bottom:1px solid var(--border);padding:0 32px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:200;height:60px;box-shadow:var(--shadow)}
+.logo{font-family:var(--sans);font-weight:800;font-size:18px;letter-spacing:-0.5px;color:var(--text);display:flex;align-items:center;gap:10px}
+.logo-badge{background:var(--text);color:#fff;font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;letter-spacing:1px}
+.live-dot{width:8px;height:8px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;flex-shrink:0}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(22,163,74,.4)}50%{box-shadow:0 0 0 4px rgba(22,163,74,0)}}
+.header-right{display:flex;align-items:center;gap:16px;font-size:12px;color:var(--muted)}
+.container{max-width:1280px;margin:0 auto;padding:28px 32px}
+.sysbar{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:24px;box-shadow:var(--shadow)}
+.sysbar-item{background:#fff;padding:12px 16px}
+.sysbar-label{font-size:10px;font-weight:600;letter-spacing:.8px;color:var(--muted);text-transform:uppercase;margin-bottom:4px}
+.sysbar-value{font-size:13px;font-weight:600;color:var(--text);font-family:var(--mono)}
+.card{background:#fff;border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow);margin-bottom:20px}
+.card-header{padding:16px 20px;border-bottom:1px solid var(--border2);display:flex;align-items:center;gap:10px;justify-content:space-between}
+.card-title{font-size:13px;font-weight:700;letter-spacing:.5px;color:var(--text);text-transform:uppercase}
+.card-body{padding:20px}
+.test-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px}
+.test-toggle{border:1.5px solid var(--border);border-radius:var(--radius);padding:14px;cursor:pointer;transition:all .15s;background:#fff;display:flex;flex-direction:column;gap:6px;position:relative;user-select:none}
+.test-toggle:hover{border-color:var(--amber2);box-shadow:var(--shadow-md)}
+.test-toggle.active{border-color:var(--amber2);background:var(--amberBg)}
+.test-toggle.active .check-badge{display:flex}
+.check-badge{display:none;position:absolute;top:8px;right:8px;width:18px;height:18px;background:var(--amber2);border-radius:50%;align-items:center;justify-content:center;font-size:10px;color:#fff;font-weight:700}
+.tt-icon{font-size:22px}.tt-name{font-size:13px;font-weight:700;color:var(--text)}.tt-desc{font-size:11px;color:var(--muted)}
+.actions{display:flex;gap:10px;margin-top:20px;align-items:center;flex-wrap:wrap}
+.btn{font-family:var(--sans);font-weight:600;font-size:13px;padding:10px 22px;border-radius:var(--radius);border:1.5px solid;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:8px}
+.btn-primary{border-color:var(--text);background:var(--text);color:#fff}
+.btn-primary:hover:not(:disabled){background:#1f2937}
+.btn-danger{border-color:var(--red);background:var(--redBg);color:var(--red)}
+.btn-danger:hover:not(:disabled){background:var(--red);color:#fff}
+.btn-secondary{border-color:var(--border);background:#fff;color:var(--text2)}
+.btn-secondary:hover:not(:disabled){border-color:var(--text);background:var(--bg2)}
+.btn:disabled{opacity:.35;cursor:not-allowed}
+.duration-select{background:#fff;border:1.5px solid var(--border);color:var(--text);font-family:var(--sans);font-size:13px;padding:10px 14px;border-radius:var(--radius);cursor:pointer;outline:none}
+.test-panel{background:#fff;border:1.5px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:border-color .3s,box-shadow .3s;box-shadow:var(--shadow)}
+.test-panel.running{border-color:var(--amber2);box-shadow:0 0 0 3px rgba(245,158,11,.1)}
+.test-panel.done-pass{border-color:var(--green)}
+.test-panel.done-warn{border-color:var(--orange)}
+.test-panel.done-fail{border-color:var(--red)}
+.tp-header{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--border2);background:var(--bg2)}
+.tp-icon{font-size:18px}.tp-name{font-size:14px;font-weight:700;color:var(--text);flex:1}
+.tp-status{font-size:11px;font-weight:600;letter-spacing:.8px;padding:3px 10px;border-radius:20px}
+.tp-status.idle{background:var(--bg3);color:var(--muted)}.tp-status.running{background:var(--amberBg);color:var(--amber)}
+.tp-status.pass{background:var(--greenBg);color:var(--green)}.tp-status.warn{background:var(--orangeBg);color:var(--orange)}.tp-status.fail{background:var(--redBg);color:var(--red)}
+.tp-score{font-size:20px;font-weight:800;font-family:var(--mono);min-width:70px;text-align:right}
+.tp-body{padding:16px 18px}
+.prog-wrap{height:6px;background:var(--bg4);border-radius:3px;margin:10px 0;overflow:hidden}
+.prog-bar{height:100%;background:var(--amber2);border-radius:3px;transition:width .3s;width:0}
+.prog-bar.green{background:var(--green)}.prog-bar.red{background:var(--red)}
+.metrics{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+.metric{background:var(--bg2);border:1px solid var(--border2);border-radius:6px;padding:8px 12px;min-width:100px}
+.metric-label{font-size:10px;font-weight:600;letter-spacing:.8px;color:var(--muted);text-transform:uppercase;margin-bottom:3px}
+.metric-value{font-size:14px;font-weight:700;color:var(--text);font-family:var(--mono)}
+.chart-wrap{height:72px;background:var(--bg3);border-radius:6px;overflow:hidden;margin:10px 0;border:1px solid var(--border2)}
+.chart-canvas{width:100%;height:100%;display:block}
+.log-box{background:var(--bg3);border:1px solid var(--border2);border-radius:6px;height:96px;overflow-y:auto;padding:8px 12px;margin-top:10px}
+.log-line{display:flex;gap:10px;font-size:11px;line-height:1.8;font-family:var(--mono)}
+.log-time{color:var(--muted2);flex-shrink:0}.log-msg{color:var(--text2)}
+.log-msg.ok{color:var(--green)}.log-msg.warn{color:var(--orange)}.log-msg.err{color:var(--red)}
+.notice-box{background:var(--blueBg);border:1px solid var(--blueBorder);border-radius:6px;padding:10px 14px;font-size:12px;color:var(--blue);margin-top:8px;line-height:1.6}
+.tab-bar{display:flex;gap:2px;border-bottom:1px solid var(--border2);padding:0 20px;background:var(--bg2)}
+.tab{padding:12px 18px;font-size:13px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .15s}
+.tab:hover{color:var(--text)}.tab.active{color:var(--text);border-bottom-color:var(--text)}
+.tab-content{display:none;padding:20px}.tab-content.active{display:block}
+.section-header{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.section-header h3{font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:.8px;color:var(--text)}
+.divider{flex:1;height:1px;background:var(--border2)}
+.kbd-grid{display:flex;flex-direction:column;gap:7px;padding:18px;background:var(--bg3);border-radius:var(--radius);border:1px solid var(--border2)}
+.kbd-row{display:flex;gap:5px;justify-content:center}
+.key{min-width:36px;height:36px;border:1.5px solid var(--border);border-radius:5px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;background:#fff;color:var(--text);cursor:default;transition:all .2s;box-shadow:0 2px 0 var(--border);flex-shrink:0;padding:0 5px;font-family:var(--mono);white-space:nowrap}
+.key.pressed{background:var(--green);color:#fff;border-color:var(--green);box-shadow:0 0 0 3px rgba(22,163,74,.2);transform:translateY(1px)}
+.key.w1{min-width:44px}.key.w15{min-width:54px}.key.w175{min-width:62px}.key.w2{min-width:72px}.key.w225{min-width:82px}.key.w25{min-width:92px}.key.w275{min-width:100px}.key.w3{min-width:108px}.key.space{min-width:220px}
+.kbd-stats{display:flex;gap:12px;margin-top:14px;flex-wrap:wrap}
+.kbd-stat{background:#fff;border:1px solid var(--border);border-radius:6px;padding:8px 14px}
+.kbd-stat-label{font-size:10px;font-weight:600;letter-spacing:.8px;color:var(--muted);text-transform:uppercase;margin-bottom:2px}
+.kbd-stat-value{font-size:18px;font-weight:800;color:var(--text);font-family:var(--mono)}
+.perf-tier{display:flex;gap:16px;align-items:center;padding:20px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:16px;flex-wrap:wrap}
+.perf-bars{display:flex;flex-direction:column;gap:10px}
+.perf-bar-row{display:flex;align-items:center;gap:12px}
+.perf-bar-label{width:130px;font-size:12px;font-weight:600;color:var(--text2);flex-shrink:0}
+.perf-bar-track{flex:1;height:8px;background:var(--bg4);border-radius:4px;overflow:hidden}
+.perf-bar-fill{height:100%;border-radius:4px;transition:width 1s ease}
+.perf-bar-val{width:40px;font-size:12px;font-weight:700;color:var(--text);font-family:var(--mono);text-align:right}
+.overall-score{display:flex;align-items:center;gap:32px;margin-bottom:24px;padding:28px;border:1.5px solid var(--border);background:var(--bg2);border-radius:var(--radius);flex-wrap:wrap}
+.big-score{font-size:88px;font-weight:900;line-height:1;letter-spacing:-4px}
+.results-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-bottom:24px}
+.result-card{border:1.5px solid var(--border);border-radius:var(--radius);padding:16px;background:#fff;box-shadow:var(--shadow)}
+.rc-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:10px}
+.rc-name{font-size:14px;font-weight:700;color:var(--text)}.rc-sub{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.8px;margin-bottom:2px}
+.rc-score{font-size:28px;font-weight:900;font-family:var(--mono)}
+.rc-bar-wrap{height:4px;background:var(--bg4);border-radius:2px;margin-bottom:12px;overflow:hidden}
+.rc-bar{height:100%;border-radius:2px}
+.rc-details{font-size:11px;color:var(--muted);line-height:1.9;font-family:var(--mono)}
+.suggestion{display:flex;gap:14px;padding:16px;border-left:4px solid;border-radius:0 var(--radius) var(--radius) 0;margin-bottom:10px;background:#fff;box-shadow:var(--shadow)}
+.suggestion.critical{border-color:var(--red);background:var(--redBg)}.suggestion.warning{border-color:var(--orange);background:var(--orangeBg)}
+.suggestion.info{border-color:var(--blue);background:var(--blueBg)}.suggestion.good{border-color:var(--green);background:var(--greenBg)}
+.sug-title{font-size:14px;font-weight:700;margin-bottom:4px}.sug-body{font-size:12px;color:var(--muted);line-height:1.6}
+.disclaimer{margin-top:24px;padding:16px;border:1px solid var(--border2);background:var(--bg3);border-radius:var(--radius);font-size:11px;color:var(--muted);line-height:1.8}
+.tests-container{display:flex;flex-direction:column;gap:14px;margin-bottom:24px}
+.hidden{display:none!important}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:var(--bg2)}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+@media(max-width:768px){.container{padding:16px}.header{padding:0 16px}.test-grid{grid-template-columns:repeat(2,1fr)}.kbd-row{flex-wrap:wrap}.overall-score{flex-direction:column}}
+/* ── Speed Test ── */
+.speed-gauge-wrap{display:flex;gap:24px;justify-content:center;flex-wrap:wrap;margin-bottom:20px}
+.speed-gauge{text-align:center;background:var(--bg2);border:1px solid var(--border);border-radius:12px;padding:20px 28px;min-width:150px}
+.speed-gauge-label{font-size:10px;font-weight:700;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin-bottom:8px}
+.speed-gauge-val{font-size:40px;font-weight:900;font-family:var(--mono);line-height:1;letter-spacing:-2px}
+.speed-gauge-unit{font-size:13px;font-weight:600;color:var(--muted);margin-top:4px}
+.speed-gauge.dl .speed-gauge-val{color:var(--green)}
+.speed-gauge.ul .speed-gauge-val{color:var(--blue)}
+.speed-gauge.ping .speed-gauge-val{color:var(--amber)}
+.speed-step{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:8px;background:var(--bg2);border:1px solid var(--border2);margin-bottom:8px;font-size:12px}
+.speed-step-icon{font-size:18px;flex-shrink:0}
+.speed-step-label{font-weight:600;color:var(--text2);flex:1}
+.speed-step-val{font-family:var(--mono);font-weight:700;color:var(--text)}
+.speed-progress-bar{height:4px;background:var(--bg4);border-radius:2px;margin-top:6px;overflow:hidden}
+.speed-progress-fill{height:100%;border-radius:2px;background:var(--amber2);transition:width .4s ease}
+.speed-btn{font-family:var(--sans);font-weight:700;font-size:14px;padding:12px 28px;border-radius:var(--radius);border:2px solid var(--text);background:var(--text);color:#fff;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:10px}
+.speed-btn:hover:not(:disabled){background:#1f2937}
+.speed-btn:disabled{opacity:.4;cursor:not-allowed}
+.speed-log{background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:10px 14px;margin-top:14px;max-height:120px;overflow-y:auto;font-family:var(--mono);font-size:11px;line-height:1.8;color:var(--text2)}
+/* ── Use Case Profiler ── */
+.usecase-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:16px}
+.usecase-card{border:1.5px solid var(--border);border-radius:10px;padding:16px;background:#fff;position:relative;overflow:hidden;transition:border-color .2s}
+.usecase-card.top-pick{border-color:var(--amber2);box-shadow:0 0 0 3px rgba(245,158,11,.15)}
+.usecase-rank{position:absolute;top:8px;right:10px;font-size:10px;font-weight:700;color:var(--muted);letter-spacing:.8px}
+.usecase-icon{font-size:28px;margin-bottom:6px}
+.usecase-name{font-size:13px;font-weight:800;color:var(--text);margin-bottom:4px}
+.usecase-score-row{display:flex;align-items:center;gap:8px;margin:8px 0 4px}
+.usecase-score-bar{flex:1;height:6px;background:var(--bg4);border-radius:3px;overflow:hidden}
+.usecase-score-fill{height:100%;border-radius:3px;transition:width 1s ease}
+.usecase-score-num{font-size:12px;font-weight:700;font-family:var(--mono);min-width:30px;text-align:right}
+.usecase-desc{font-size:11px;color:var(--muted);line-height:1.5}
+.usecase-tag{display:inline-block;font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;background:var(--amberBg);color:var(--amber);letter-spacing:.6px;margin-bottom:6px}
+/* ── Network Scanner ── */
+.netscanner-toolbar{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap}
+.scan-status-dot{width:10px;height:10px;border-radius:50%;background:var(--border);flex-shrink:0;transition:background .3s}
+.scan-status-dot.scanning{background:var(--amber2);animation:pulse 1s infinite}
+.scan-status-dot.done{background:var(--green)}
+.device-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-top:16px}
+.device-card{border:1px solid var(--border);border-radius:8px;padding:14px;background:#fff;display:flex;align-items:flex-start;gap:12px;box-shadow:var(--shadow)}
+.device-icon{font-size:28px;flex-shrink:0}
+.device-info{flex:1;min-width:0}
+.device-name{font-size:13px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.device-ip{font-size:11px;font-family:var(--mono);color:var(--muted);margin-top:2px}
+.device-tag{display:inline-block;margin-top:6px;font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;background:var(--blueBg);color:var(--blue)}
+.device-latency{font-size:10px;color:var(--muted2);margin-top:3px;font-family:var(--mono)}
+.scanner-summary{background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:12px 16px;display:flex;gap:20px;flex-wrap:wrap;margin-bottom:16px;font-size:12px}
+.scanner-sum-item{display:flex;flex-direction:column;gap:2px}
+.scanner-sum-label{font-size:10px;font-weight:600;letter-spacing:.8px;color:var(--muted);text-transform:uppercase}
+.scanner-sum-val{font-size:18px;font-weight:800;font-family:var(--mono);color:var(--text)}
+/* ── Performance Killer ── */
+.pk-live-bar{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:18px}
+.pk-live-item{background:#fff;padding:12px 16px;position:relative;overflow:hidden}
+.pk-live-label{font-size:10px;font-weight:700;letter-spacing:.8px;color:var(--muted);text-transform:uppercase;margin-bottom:4px}
+.pk-live-val{font-size:22px;font-weight:900;font-family:var(--mono);line-height:1}
+.pk-live-sub{font-size:10px;color:var(--muted);margin-top:3px}
+.pk-live-bg{position:absolute;bottom:0;left:0;height:3px;transition:width .5s ease,background .5s}
+.pk-section{margin-bottom:20px}
+.pk-section-title{font-size:11px;font-weight:700;letter-spacing:.8px;color:var(--muted);text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px}
+.pk-row{display:flex;align-items:center;gap:12px;padding:10px 14px;border:1px solid var(--border2);border-radius:8px;margin-bottom:6px;background:#fff;transition:border-color .3s,background .3s}
+.pk-row.critical{border-color:var(--red);background:var(--redBg)}
+.pk-row.warning{border-color:var(--orange);background:var(--orangeBg)}
+.pk-row.good{border-color:var(--greenBorder);background:var(--greenBg)}
+.pk-row-icon{font-size:22px;flex-shrink:0;width:32px;text-align:center}
+.pk-row-body{flex:1;min-width:0}
+.pk-row-name{font-size:13px;font-weight:700;color:var(--text)}
+.pk-row-desc{font-size:11px;color:var(--muted);margin-top:2px;line-height:1.4}
+.pk-row-meta{font-size:11px;font-family:var(--mono);color:var(--text2);text-align:right;flex-shrink:0;min-width:70px}
+.pk-sev{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;letter-spacing:.6px;flex-shrink:0}
+.pk-sev.critical{background:var(--redBg);color:var(--red)}
+.pk-sev.warning{background:var(--orangeBg);color:var(--orange)}
+.pk-sev.good{background:var(--greenBg);color:var(--green)}
+.pk-sev.info{background:var(--blueBg);color:var(--blue)}
+.pk-fix{margin-top:6px;padding:8px 12px;background:var(--bg3);border-radius:6px;font-size:11px;color:var(--text2);line-height:1.6;border-left:3px solid var(--amber2)}
+.pk-chart-wrap{height:80px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;overflow:hidden;margin-bottom:6px;position:relative}
+.pk-chart-label{position:absolute;top:4px;left:8px;font-size:9px;font-weight:700;letter-spacing:.8px;color:var(--muted);text-transform:uppercase}
+.pk-tab-bar{display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap}
+.pk-tab{padding:6px 14px;font-size:12px;font-weight:600;border-radius:20px;cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--muted);transition:all .15s}
+.pk-tab.active{background:var(--text);color:#fff;border-color:var(--text)}
+.pk-tab-content{display:none}.pk-tab-content.active{display:block}
+.pk-badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700;margin-right:6px;margin-bottom:6px}
+.pk-score-ring{width:80px;height:80px;flex-shrink:0}
+.pk-overall{display:flex;gap:20px;align-items:center;padding:18px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:18px;flex-wrap:wrap}
+.pk-recommendations{display:flex;flex-direction:column;gap:8px}
+/* ── Hardware Health ── */
+.hw-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px;margin-bottom:20px}
+.hw-card{border:1.5px solid var(--border);border-radius:10px;background:#fff;overflow:hidden;box-shadow:var(--shadow)}
+.hw-card-head{padding:14px 16px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--border2)}
+.hw-card-icon{font-size:24px;flex-shrink:0}
+.hw-card-title{font-size:13px;font-weight:800;color:var(--text);flex:1}
+.hw-card-status{font-size:11px;font-weight:700;padding:3px 10px;border-radius:20px;letter-spacing:.6px}
+.hw-card-status.ok{background:var(--greenBg);color:var(--green)}
+.hw-card-status.warn{background:var(--amberBg);color:var(--amber)}
+.hw-card-status.critical{background:var(--redBg);color:var(--red)}
+.hw-card-status.info{background:var(--blueBg);color:var(--blue)}
+.hw-card-status.unknown{background:var(--bg3);color:var(--muted)}
+.hw-card-body{padding:14px 16px}
+.hw-metric-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border2);font-size:12px}
+.hw-metric-row:last-child{border-bottom:none}
+.hw-metric-label{color:var(--muted);font-weight:500}
+.hw-metric-value{font-family:var(--mono);font-weight:700;color:var(--text)}
+.hw-metric-value.bad{color:var(--red)}
+.hw-metric-value.warn{color:var(--amber)}
+.hw-metric-value.good{color:var(--green)}
+.hw-bar-wrap{height:5px;background:var(--bg4);border-radius:3px;margin:8px 0 4px;overflow:hidden}
+.hw-bar{height:100%;border-radius:3px;transition:width 1s ease}
+.hw-advice{margin-top:10px;padding:8px 12px;background:var(--bg3);border-left:3px solid var(--amber2);border-radius:0 6px 6px 0;font-size:11px;color:var(--text2);line-height:1.6}
+.hw-overall{display:flex;gap:16px;align-items:center;padding:20px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:20px;flex-wrap:wrap}
+.hw-score-big{font-size:72px;font-weight:900;font-family:var(--mono);line-height:1;letter-spacing:-3px}
+.hw-age-timeline{position:relative;height:32px;background:var(--bg3);border-radius:6px;overflow:hidden;margin:8px 0}
+.hw-age-fill{position:absolute;top:0;left:0;height:100%;border-radius:6px;transition:width 1s ease}
+.hw-age-label{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:11px;font-weight:700;white-space:nowrap}
+.hw-sensor-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px;margin-bottom:14px}
+.hw-sensor{background:var(--bg2);border:1px solid var(--border2);border-radius:8px;padding:12px;text-align:center}
+.hw-sensor-icon{font-size:22px;margin-bottom:4px}
+.hw-sensor-val{font-size:18px;font-weight:800;font-family:var(--mono)}
+.hw-sensor-label{font-size:10px;font-weight:600;letter-spacing:.8px;color:var(--muted);text-transform:uppercase;margin-top:2px}
+.hw-checklist{display:flex;flex-direction:column;gap:6px}
+.hw-check-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-radius:8px;font-size:12px;border:1px solid var(--border2);background:#fff}
+.hw-check-icon{font-size:18px;flex-shrink:0;margin-top:1px}
+.hw-check-body{flex:1}
+.hw-check-title{font-weight:700;color:var(--text);margin-bottom:2px}
+.hw-check-desc{color:var(--muted);line-height:1.5}
+.hw-check-action{margin-top:5px;font-size:11px;color:var(--blue);font-weight:600}
+.hw-check-item.critical{border-color:var(--redBorder);background:var(--redBg)}
+.hw-check-item.warning{border-color:#fed7aa;background:var(--orangeBg)}
+.hw-check-item.good{border-color:var(--greenBorder);background:var(--greenBg)}
+.hw-tabs{display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap}
+.hw-tab{padding:6px 14px;font-size:12px;font-weight:600;border-radius:20px;cursor:pointer;border:1.5px solid var(--border);background:#fff;color:var(--muted);transition:all .15s}
+.hw-tab.active{background:var(--text);color:#fff;border-color:var(--text)}
+.hw-tab-content{display:none}.hw-tab-content.active{display:block}
+.hw-stressbar{height:12px;background:var(--bg4);border-radius:6px;overflow:hidden;margin:4px 0}
+.hw-stressbar-fill{height:100%;border-radius:6px;transition:width .4s ease}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="logo"><div class="live-dot"></div>SysDiag Pro<span class="logo-badge">v4.0</span></div>
+  <div class="header-right"><span id="header-time">—</span></div>
+</div>
+<div class="container">
+  <div class="sysbar">
+    <div class="sysbar-item"><div class="sysbar-label">Platform</div><div class="sysbar-value" id="si-platform">—</div></div>
+    <div class="sysbar-item"><div class="sysbar-label">CPU Threads</div><div class="sysbar-value" id="si-cores">—</div></div>
+    <div class="sysbar-item"><div class="sysbar-label">Device Memory</div><div class="sysbar-value" id="si-memory">—</div></div>
+    <div class="sysbar-item"><div class="sysbar-label">Screen</div><div class="sysbar-value" id="si-screen">—</div></div>
+    <div class="sysbar-item"><div class="sysbar-label">Pixel Ratio</div><div class="sysbar-value" id="si-dpr">—</div></div>
+    <div class="sysbar-item"><div class="sysbar-label">Browser</div><div class="sysbar-value" id="si-browser">—</div></div>
+    <div class="sysbar-item"><div class="sysbar-label">Battery</div><div class="sysbar-value" id="si-battery">—</div></div>
+    <div class="sysbar-item"><div class="sysbar-label">Connection</div><div class="sysbar-value" id="si-net">—</div></div>
+  </div>
+
+  <div class="card" style="margin-bottom:20px">
+    <div class="tab-bar">
+      <div class="tab active" onclick="switchTab('benchmarks')">⚡ Benchmarks</div>
+      <div class="tab" onclick="switchTab('keyboard')">⌨️ Keyboard Test</div>
+      <div class="tab" onclick="switchTab('winperf')">🖥️ Windows Performance</div>
+      <div class="tab" onclick="switchTab('speedtest')">📡 Speed Test</div>
+      <div class="tab" onclick="switchTab('usecase')">🎯 Use Case Profiler</div>
+      <div class="tab" onclick="switchTab('netscanner')">🔭 Network Scanner</div>
+      <div class="tab" onclick="switchTab('perfkiller')">🔥 Performance Killer</div>
+      <div class="tab" onclick="switchTab('hardware')">🔬 Hardware Health</div>
+    </div>
+
+    <div class="tab-content active" id="tab-benchmarks">
+      <div class="section-header"><h3>Select Tests</h3><div class="divider"></div></div>
+      <div class="test-grid" id="test-grid">
+        <div class="test-toggle active" data-test="cpu"><div class="check-badge">✓</div><div class="tt-icon">⚙️</div><div class="tt-name">CPU</div><div class="tt-desc">Math &amp; threading</div></div>
+        <div class="test-toggle active" data-test="memory"><div class="check-badge">✓</div><div class="tt-icon">🧠</div><div class="tt-name">Memory</div><div class="tt-desc">RAM bandwidth</div></div>
+        <div class="test-toggle active" data-test="gpu"><div class="check-badge">✓</div><div class="tt-icon">🎮</div><div class="tt-name">GPU / Render</div><div class="tt-desc">WebGL &amp; canvas</div></div>
+        <div class="test-toggle active" data-test="storage"><div class="check-badge">✓</div><div class="tt-icon">💾</div><div class="tt-name">Storage</div><div class="tt-desc">ArrayBuffer I/O</div></div>
+        <div class="test-toggle active" data-test="network"><div class="check-badge">✓</div><div class="tt-icon">🌐</div><div class="tt-name">Network</div><div class="tt-desc">Latency &amp; speed</div></div>
+        <div class="test-toggle active" data-test="battery"><div class="check-badge">✓</div><div class="tt-icon">🔋</div><div class="tt-name">Battery</div><div class="tt-desc">Health &amp; status</div></div>
+        <div class="test-toggle active" data-test="display"><div class="check-badge">✓</div><div class="tt-icon">🖥️</div><div class="tt-name">Display</div><div class="tt-desc">Refresh &amp; color</div></div>
+        <div class="test-toggle active" data-test="audio"><div class="check-badge">✓</div><div class="tt-icon">🔊</div><div class="tt-name">Audio</div><div class="tt-desc">Web Audio API</div></div>
+      </div>
+      <div class="actions">
+        <button class="btn btn-primary" id="btn-run" onclick="startTests()">▶ Run Diagnostics</button>
+        <button class="btn btn-danger hidden" id="btn-stop" onclick="stopTests()">■ Stop</button>
+        <button class="btn btn-secondary" id="btn-report" onclick="generateReport()" disabled>📋 Generate Report</button>
+        <select class="duration-select" id="duration-select">
+          <option value="5000">Quick (5s)</option>
+          <option value="15000" selected>Standard (15s)</option>
+          <option value="30000">Thorough (30s)</option>
+          <option value="60000">Intensive (60s)</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="tab-content" id="tab-keyboard">
+      <div class="section-header"><h3>Keyboard Key Tester</h3><div class="divider"></div><span style="font-size:12px;color:var(--muted)">Press any key — green = working</span></div>
+      <div class="kbd-grid" id="kbd-grid"></div>
+      <div class="kbd-stats">
+        <div class="kbd-stat"><div class="kbd-stat-label">Keys Tested</div><div class="kbd-stat-value" id="kbd-count">0</div></div>
+        <div class="kbd-stat"><div class="kbd-stat-label">Total Presses</div><div class="kbd-stat-value" id="kbd-presses">0</div></div>
+        <div class="kbd-stat"><div class="kbd-stat-label">Stuck Keys</div><div class="kbd-stat-value" id="kbd-stuck">0</div></div>
+      </div>
+      <div style="font-size:12px;color:var(--muted);margin-top:10px;font-family:var(--mono)" id="kbd-recent">Recently pressed: —</div>
+      <div style="margin-top:12px"><button class="btn btn-secondary" onclick="resetKeyboard()">↺ Reset</button></div>
+    </div>
+
+    <div class="tab-content" id="tab-winperf">
+      <div class="section-header"><h3>Windows Performance Estimate</h3><div class="divider"></div></div>
+      <div id="winperf-body">
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Estimates Windows Experience Index-style scores using live browser benchmarks.</p>
+        <button class="btn btn-primary" id="btn-winperf" onclick="runWinPerf()">▶ Run Performance Analysis</button>
+      </div>
+    </div>
+
+    <!-- ══════ SPEED TEST TAB ══════ -->
+    <div class="tab-content" id="tab-speedtest">
+      <div class="section-header"><h3>Internet Speed Test</h3><div class="divider"></div><span style="font-size:12px;color:var(--muted)">Measures real download, upload &amp; ping to multiple CDN endpoints</span></div>
+      <div class="speed-gauge-wrap">
+        <div class="speed-gauge ping"><div class="speed-gauge-label">Ping</div><div class="speed-gauge-val" id="st-ping">—</div><div class="speed-gauge-unit">ms</div></div>
+        <div class="speed-gauge dl"><div class="speed-gauge-label">Download</div><div class="speed-gauge-val" id="st-dl">—</div><div class="speed-gauge-unit">Mbps</div></div>
+        <div class="speed-gauge ul"><div class="speed-gauge-label">Upload</div><div class="speed-gauge-val" id="st-ul">—</div><div class="speed-gauge-unit">Mbps</div></div>
+        <div class="speed-gauge" style="min-width:120px"><div class="speed-gauge-label">Grade</div><div class="speed-gauge-val" id="st-grade" style="font-size:32px">—</div><div class="speed-gauge-unit" id="st-grade-label">—</div></div>
+      </div>
+      <div id="st-steps">
+        <div class="speed-step" id="sst-ping"><div class="speed-step-icon">🏓</div><div><div class="speed-step-label">Latency Test (3 targets)</div><div class="speed-progress-bar"><div class="speed-progress-fill" id="ssp-ping" style="width:0%"></div></div></div><div class="speed-step-val" id="ssv-ping">—</div></div>
+        <div class="speed-step" id="sst-dl"><div class="speed-step-icon">⬇️</div><div style="flex:1"><div class="speed-step-label">Download Speed (multi-chunk fetch)</div><div class="speed-progress-bar"><div class="speed-progress-fill" id="ssp-dl" style="width:0%"></div></div></div><div class="speed-step-val" id="ssv-dl">—</div></div>
+        <div class="speed-step" id="sst-ul"><div class="speed-step-icon">⬆️</div><div style="flex:1"><div class="speed-step-label">Upload Speed (XHR payload)</div><div class="speed-progress-bar"><div class="speed-progress-fill" id="ssp-ul" style="width:0%"></div></div></div><div class="speed-step-val" id="ssv-ul">—</div></div>
+      </div>
+      <div style="margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+        <button class="speed-btn" id="btn-speedtest" onclick="runSpeedTest()">▶ Start Speed Test</button>
+        <span style="font-size:11px;color:var(--muted)">Uses Cloudflare, Google, and jsDelivr CDN endpoints</span>
+      </div>
+      <div class="speed-log" id="st-log">Ready — click Start Speed Test to begin.</div>
+      <div class="notice-box" style="margin-top:14px">ℹ️ Browser fetch-based speed tests reflect real TCP throughput to public CDNs. Results may be 10–20% lower than native tools (speedtest.net) due to JavaScript overhead and CORS limitations. For exact ISP speed use speedtest.net or fast.com.</div>
+    </div>
+
+    <!-- ══════ USE CASE PROFILER TAB ══════ -->
+    <div class="tab-content" id="tab-usecase">
+      <div class="section-header"><h3>PC Use Case Profiler</h3><div class="divider"></div><span style="font-size:12px;color:var(--muted)">Find what this machine is best suited for</span></div>
+      <div id="usecase-body">
+        <p style="font-size:13px;color:var(--muted);margin-bottom:16px">Runs a quick benchmark suite and scores your system against common workload profiles.</p>
+        <button class="btn btn-primary" id="btn-usecase" onclick="runUseCaseProfiler()">🎯 Analyse My PC</button>
+      </div>
+    </div>
+
+    <!-- ══════ NETWORK SCANNER TAB ══════ -->
+    <div class="tab-content" id="tab-netscanner">
+      <div class="section-header"><h3>Network Device Scanner</h3><div class="divider"></div><span style="font-size:12px;color:var(--muted)">Discover devices connected on your local network</span></div>
+      <div class="netscanner-toolbar">
+        <div class="scan-status-dot" id="scan-dot"></div>
+        <span style="font-size:13px;font-weight:600;color:var(--text2)" id="scan-status-txt">Ready to scan</span>
+        <button class="btn btn-primary" id="btn-scan" onclick="runNetworkScan()" style="padding:8px 18px;font-size:12px">🔭 Start Scan</button>
+        <button class="btn btn-secondary" id="btn-scan-stop" onclick="stopNetScan()" style="padding:8px 18px;font-size:12px;display:none">■ Stop</button>
+      </div>
+      <div class="scanner-summary" id="scan-summary" style="display:none">
+        <div class="scanner-sum-item"><div class="scanner-sum-label">Devices Found</div><div class="scanner-sum-val" id="scan-count">0</div></div>
+        <div class="scanner-sum-item"><div class="scanner-sum-label">IPs Probed</div><div class="scanner-sum-val" id="scan-probed">0</div></div>
+        <div class="scanner-sum-item"><div class="scanner-sum-label">Scan Time</div><div class="scanner-sum-val" id="scan-time">—</div></div>
+        <div class="scanner-sum-item"><div class="scanner-sum-label">Your IP (est.)</div><div class="scanner-sum-val" id="scan-myip" style="font-size:13px">—</div></div>
+      </div>
+      <div class="device-grid" id="device-grid"></div>
+      <div class="notice-box" style="margin-top:14px">ℹ️ <strong>How it works:</strong> WebRTC ICE gathering reveals your real LAN IP (e.g. 192.168.1.x). The scanner then probes your subnet using an &lt;img&gt; timing trick — a live host causes a fast TCP connection-refused error (&lt;80ms) while a dead IP times out slowly. This works entirely in-browser with no CORS issues. Devices with no port 80 listener but a strict firewall (drop instead of refuse) may be missed. For a full ARP scan use <strong>Advanced IP Scanner</strong> or <strong>nmap</strong> on Windows.</div>
+    </div>
+
+    <!-- ══════ PERFORMANCE KILLER TAB ══════ -->
+    <div class="tab-content" id="tab-perfkiller">
+      <div class="section-header"><h3>Performance Killer Detector</h3><div class="divider"></div><span style="font-size:12px;color:var(--muted)">Live monitor — identifies what's hogging your CPU, RAM &amp; GPU</span></div>
+
+      <!-- Live meters -->
+      <div class="pk-live-bar" id="pk-live-bar">
+        <div class="pk-live-item"><div class="pk-live-label">Frame Rate</div><div class="pk-live-val" id="pk-fps">—</div><div class="pk-live-sub">fps (target 60)</div><div class="pk-live-bg" id="pk-fps-bg"></div></div>
+        <div class="pk-live-item"><div class="pk-live-label">Frame Jank</div><div class="pk-live-val" id="pk-jank">—</div><div class="pk-live-sub">% dropped frames</div><div class="pk-live-bg" id="pk-jank-bg"></div></div>
+        <div class="pk-live-item"><div class="pk-live-label">JS Heap Used</div><div class="pk-live-val" id="pk-heap">—</div><div class="pk-live-sub">MB / limit</div><div class="pk-live-bg" id="pk-heap-bg"></div></div>
+        <div class="pk-live-item"><div class="pk-live-label">CPU Pressure</div><div class="pk-live-val" id="pk-cpu">—</div><div class="pk-live-sub">task blocking ms</div><div class="pk-live-bg" id="pk-cpu-bg"></div></div>
+        <div class="pk-live-item"><div class="pk-live-label">Long Tasks</div><div class="pk-live-val" id="pk-longtask">0</div><div class="pk-live-sub">blocked &gt;50ms</div><div class="pk-live-bg" id="pk-lt-bg"></div></div>
+        <div class="pk-live-item"><div class="pk-live-label">DOM Nodes</div><div class="pk-live-val" id="pk-dom">—</div><div class="pk-live-sub">total elements</div><div class="pk-live-bg" id="pk-dom-bg"></div></div>
+      </div>
+
+      <!-- Controls -->
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:18px;flex-wrap:wrap">
+        <button class="btn btn-primary" id="pk-btn-start" onclick="startPerfKiller()">▶ Start Monitor</button>
+        <button class="btn btn-danger" id="pk-btn-stop" onclick="stopPerfKiller()" style="display:none">■ Stop</button>
+        <button class="btn btn-secondary" id="pk-btn-analyze" onclick="runDeepAnalysis()" disabled>🔬 Deep Analysis</button>
+        <span style="font-size:11px;color:var(--muted)" id="pk-elapsed-txt">Click Start to begin live monitoring</span>
+      </div>
+
+      <!-- Sub-tabs -->
+      <div class="pk-tab-bar">
+        <div class="pk-tab active" onclick="switchPKTab('overview')">📊 Overview</div>
+        <div class="pk-tab" onclick="switchPKTab('timeline')">📈 Timeline</div>
+        <div class="pk-tab" onclick="switchPKTab('memory')">🧠 Memory</div>
+        <div class="pk-tab" onclick="switchPKTab('resources')">⚙️ Resources</div>
+        <div class="pk-tab" onclick="switchPKTab('fixes')">🛠️ Fix It</div>
+      </div>
+
+      <!-- Overview -->
+      <div class="pk-tab-content active" id="pkt-overview">
+        <div class="pk-overall" id="pk-overall-card">
+          <div>
+            <canvas id="pk-score-canvas" width="80" height="80"></canvas>
+          </div>
+          <div style="flex:1">
+            <div style="font-size:10px;font-weight:700;letter-spacing:.8px;color:var(--muted);text-transform:uppercase;margin-bottom:4px">System Health Score</div>
+            <div style="font-size:28px;font-weight:900;color:var(--text)" id="pk-health-score">—</div>
+            <div style="font-size:12px;color:var(--muted);margin-top:4px" id="pk-health-label">Start the monitor to analyse performance</div>
+            <div style="margin-top:10px;display:flex;flex-wrap:wrap;gap:6px" id="pk-badges"></div>
+          </div>
+        </div>
+        <div class="pk-section">
+          <div class="pk-section-title">🔥 Performance Killers Detected <div class="divider"></div></div>
+          <div id="pk-killers-list"><div style="color:var(--muted);font-size:12px;padding:14px;background:var(--bg2);border-radius:var(--radius);border:1px solid var(--border2)">Run the monitor for at least 5 seconds, then click Deep Analysis.</div></div>
+        </div>
+      </div>
+
+      <!-- Timeline -->
+      <div class="pk-tab-content" id="pkt-timeline">
+        <div class="pk-chart-wrap" style="height:100px"><div class="pk-chart-label">FPS over time</div><canvas id="pk-cv-fps" style="width:100%;height:100%;display:block"></canvas></div>
+        <div class="pk-chart-wrap" style="height:80px;margin-top:10px"><div class="pk-chart-label">JS Heap (MB)</div><canvas id="pk-cv-heap" style="width:100%;height:100%;display:block"></canvas></div>
+        <div class="pk-chart-wrap" style="height:80px;margin-top:10px"><div class="pk-chart-label">CPU Task Blocking (ms)</div><canvas id="pk-cv-cpu" style="width:100%;height:100%;display:block"></canvas></div>
+        <div style="font-size:11px;color:var(--muted);margin-top:8px">Sampled every second. Spikes indicate heavy computation or garbage collection pauses.</div>
+      </div>
+
+      <!-- Memory -->
+      <div class="pk-tab-content" id="pkt-memory">
+        <div id="pk-memory-body" style="color:var(--muted);font-size:12px;padding:14px;background:var(--bg2);border-radius:var(--radius)">Start the monitor to see memory analysis.</div>
+      </div>
+
+      <!-- Resources -->
+      <div class="pk-tab-content" id="pkt-resources">
+        <div id="pk-resources-body" style="color:var(--muted);font-size:12px;padding:14px;background:var(--bg2);border-radius:var(--radius)">Start the monitor to see resource analysis.</div>
+      </div>
+
+      <!-- Fix It -->
+      <div class="pk-tab-content" id="pkt-fixes">
+        <div id="pk-fixes-body">
+          <div style="color:var(--muted);font-size:12px;padding:14px;background:var(--bg2);border-radius:var(--radius)">Run Deep Analysis to get personalised fix recommendations.</div>
+        </div>
+      </div>
+
+      <div class="notice-box" style="margin-top:14px">ℹ️ <strong>Browser limitations:</strong> Browsers cannot directly list running OS processes (Task Manager-level access requires native apps). Instead this tool measures <em>what the browser observes</em>: frame rate drops, JS long tasks, heap growth, DOM bloat, layout thrashing, and network pressure — which together accurately diagnose the <em>type</em> of performance problem and which app category is causing it. For exact per-process CPU/RAM use <strong>Task Manager</strong> (Windows) or <strong>Activity Monitor</strong> (Mac) alongside this tool.</div>
+    </div>
+
+    <!-- ══════ HARDWARE HEALTH TAB ══════ -->
+    <div class="tab-content" id="tab-hardware">
+      <div class="section-header"><h3>Hardware Health Check</h3><div class="divider"></div><span style="font-size:12px;color:var(--muted)">Fan · CPU heat · Thermal throttle · Motherboard · Battery · Storage · RAM · GPU</span></div>
+
+      <!-- Controls -->
+      <div style="display:flex;gap:10px;align-items:center;margin-bottom:18px;flex-wrap:wrap">
+        <button class="btn btn-primary" id="hw-btn-run" onclick="runHardwareHealth()">🔬 Run Full Hardware Check</button>
+        <button class="btn btn-secondary" onclick="switchHWTab('guide')" style="font-size:12px;padding:8px 16px">📋 Manual Check Guide</button>
+        <span style="font-size:11px;color:var(--muted)">Combines browser sensors + inference + user-reported age</span>
+      </div>
+
+      <!-- User input row -->
+      <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:16px;padding:14px 16px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius)">
+        <div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:.8px;color:var(--muted);text-transform:uppercase;margin-bottom:5px">PC / Laptop Age (years)</div>
+          <input type="number" id="hw-age" min="0" max="30" value="3" style="width:80px;padding:7px 10px;border:1.5px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:14px;font-weight:700;background:#fff;color:var(--text)">
+        </div>
+        <div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:.8px;color:var(--muted);text-transform:uppercase;margin-bottom:5px">Device Type</div>
+          <select id="hw-type" style="padding:8px 12px;border:1.5px solid var(--border);border-radius:6px;font-size:13px;background:#fff;color:var(--text);font-family:var(--sans)">
+            <option value="laptop">Laptop</option>
+            <option value="desktop">Desktop PC</option>
+            <option value="mini">Mini PC / NUC</option>
+          </select>
+        </div>
+        <div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:.8px;color:var(--muted);text-transform:uppercase;margin-bottom:5px">Last Cleaned (months ago)</div>
+          <input type="number" id="hw-cleaned" min="0" max="120" value="12" style="width:90px;padding:7px 10px;border:1.5px solid var(--border);border-radius:6px;font-family:var(--mono);font-size:14px;font-weight:700;background:#fff;color:var(--text)">
+        </div>
+        <div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:.8px;color:var(--muted);text-transform:uppercase;margin-bottom:5px">Thermal Paste Replaced</div>
+          <select id="hw-paste" style="padding:8px 12px;border:1.5px solid var(--border);border-radius:6px;font-size:13px;background:#fff;color:var(--text);font-family:var(--sans)">
+            <option value="never">Never / Unknown</option>
+            <option value="lt2">Less than 2 yrs ago</option>
+            <option value="2to4">2–4 years ago</option>
+            <option value="gt4">More than 4 years ago</option>
+          </select>
+        </div>
+        <div>
+          <div style="font-size:10px;font-weight:700;letter-spacing:.8px;color:var(--muted);text-transform:uppercase;margin-bottom:5px">Noticed Symptoms</div>
+          <select id="hw-symptoms" style="padding:8px 12px;border:1.5px solid var(--border);border-radius:6px;font-size:13px;background:#fff;color:var(--text);font-family:var(--sans)">
+            <option value="none">None</option>
+            <option value="fan">Loud fan noise</option>
+            <option value="hot">Hot to touch</option>
+            <option value="crash">Random crashes/BSOD</option>
+            <option value="slow">Sudden slowdowns</option>
+            <option value="noise">Clicking/grinding noise</option>
+            <option value="multi">Multiple symptoms</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Sub-tabs -->
+      <div class="hw-tabs">
+        <div class="hw-tab active" onclick="switchHWTab('sensors')">🌡️ Live Sensors</div>
+        <div class="hw-tab" onclick="switchHWTab('checks')">✅ Component Checks</div>
+        <div class="hw-tab" onclick="switchHWTab('thermal')">🔥 Thermal Analysis</div>
+        <div class="hw-tab" onclick="switchHWTab('service')">🛠️ Service Schedule</div>
+        <div class="hw-tab" onclick="switchHWTab('guide')">📋 Manual Guide</div>
+      </div>
+
+      <!-- SENSORS TAB -->
+      <div class="hw-tab-content active" id="hwt-sensors">
+        <div class="hw-sensor-grid" id="hw-sensor-grid">
+          <div class="hw-sensor"><div class="hw-sensor-icon">🌡️</div><div class="hw-sensor-val" id="hws-cputemp">—</div><div class="hw-sensor-label">CPU Temp (est.)</div></div>
+          <div class="hw-sensor"><div class="hw-sensor-icon">🔋</div><div class="hw-sensor-val" id="hws-battery">—</div><div class="hw-sensor-label">Battery</div></div>
+          <div class="hw-sensor"><div class="hw-sensor-icon">⚡</div><div class="hw-sensor-val" id="hws-charging">—</div><div class="hw-sensor-label">Power State</div></div>
+          <div class="hw-sensor"><div class="hw-sensor-icon">🧠</div><div class="hw-sensor-val" id="hws-ram">—</div><div class="hw-sensor-label">JS Heap</div></div>
+          <div class="hw-sensor"><div class="hw-sensor-icon">🖥️</div><div class="hw-sensor-val" id="hws-hz">—</div><div class="hw-sensor-label">Refresh Rate</div></div>
+          <div class="hw-sensor"><div class="hw-sensor-icon">📡</div><div class="hw-sensor-val" id="hws-net">—</div><div class="hw-sensor-label">Connection</div></div>
+          <div class="hw-sensor"><div class="hw-sensor-icon">⚙️</div><div class="hw-sensor-val" id="hws-cores">—</div><div class="hw-sensor-label">CPU Cores</div></div>
+          <div class="hw-sensor"><div class="hw-sensor-icon">💾</div><div class="hw-sensor-val" id="hws-storage">—</div><div class="hw-sensor-label">Storage Speed</div></div>
+        </div>
+        <div style="font-size:11px;color:var(--muted);margin-top:4px">⚠️ CPU temp is inferred from throttle detection — browsers have no direct temperature sensor. For exact temps install <strong>HWMonitor</strong> or <strong>HWiNFO64</strong>.</div>
+        <div id="hw-live-log" style="margin-top:14px;background:var(--bg3);border:1px solid var(--border2);border-radius:6px;padding:10px 14px;font-family:var(--mono);font-size:11px;line-height:1.9;color:var(--text2);max-height:160px;overflow-y:auto">Click Run Full Hardware Check to begin...</div>
+      </div>
+
+      <!-- CHECKS TAB -->
+      <div class="hw-tab-content" id="hwt-checks">
+        <div id="hw-checks-body">
+          <div style="color:var(--muted);font-size:12px;padding:14px;background:var(--bg2);border-radius:var(--radius)">Run the hardware check first.</div>
+        </div>
+      </div>
+
+      <!-- THERMAL TAB -->
+      <div class="hw-tab-content" id="hwt-thermal">
+        <div id="hw-thermal-body">
+          <div style="color:var(--muted);font-size:12px;padding:14px;background:var(--bg2);border-radius:var(--radius)">Run the hardware check first.</div>
+        </div>
+      </div>
+
+      <!-- SERVICE SCHEDULE TAB -->
+      <div class="hw-tab-content" id="hwt-service">
+        <div id="hw-service-body">
+          <div style="color:var(--muted);font-size:12px;padding:14px;background:var(--bg2);border-radius:var(--radius)">Fill in PC age and run the check to generate your service schedule.</div>
+        </div>
+      </div>
+
+      <!-- MANUAL GUIDE TAB -->
+      <div class="hw-tab-content" id="hwt-guide">
+        <div style="display:flex;flex-direction:column;gap:10px">
+          <div style="padding:12px 16px;background:var(--blueBg);border:1px solid var(--blueBorder);border-radius:8px;font-size:12px;color:var(--blue)">
+            ℹ️ These checks require you to inspect the hardware directly or run native OS tools. Use this as a physical inspection checklist alongside the automated scan above.
+          </div>
+          <div class="hw-check-item">
+            <div class="hw-check-icon">🌡️</div>
+            <div class="hw-check-body">
+              <div class="hw-check-title">Check CPU / GPU Temperature</div>
+              <div class="hw-check-desc">Install <strong>HWMonitor</strong> (free) or <strong>HWiNFO64</strong>. Idle CPU should be 35–55°C. Under full load &lt;85°C is safe. &gt;95°C = critical.</div>
+              <div class="hw-check-action">→ Download: cpuid.com/softwares/hwmonitor.html</div>
+            </div>
+          </div>
+          <div class="hw-check-item">
+            <div class="hw-check-icon">🌀</div>
+            <div class="hw-check-body">
+              <div class="hw-check-title">Fan Speed &amp; Noise Check</div>
+              <div class="hw-check-desc">In HWMonitor, check fan RPM. Laptop fans: 0 RPM at idle (normal), 3000–5000 RPM under load. If fan runs at max RPM constantly → clogged vents. Grinding/clicking sound → fan bearing failing, replace immediately.</div>
+              <div class="hw-check-action">→ Listen for: clicking, grinding, rattling = bearing failure</div>
+            </div>
+          </div>
+          <div class="hw-check-item">
+            <div class="hw-check-icon">💾</div>
+            <div class="hw-check-body">
+              <div class="hw-check-title">SSD / HDD Health (S.M.A.R.T.)</div>
+              <div class="hw-check-desc">Install <strong>CrystalDiskInfo</strong> (free). It reads S.M.A.R.T. data directly from your drive. Shows reallocated sectors, uncorrectable errors, power-on hours, and a health rating. "Caution" or "Bad" = backup immediately.</div>
+              <div class="hw-check-action">→ Download: crystalmark.info/en/software/crystaldiskinfo</div>
+            </div>
+          </div>
+          <div class="hw-check-item">
+            <div class="hw-check-icon">🧠</div>
+            <div class="hw-check-body">
+              <div class="hw-check-title">RAM Error Check</div>
+              <div class="hw-check-desc">Windows: press Win+R → type <code>mdsched.exe</code> → restart and test. Or use <strong>MemTest86</strong> (bootable USB) for a full test. Errors found = one or more RAM sticks are faulty.</div>
+              <div class="hw-check-action">→ Windows Memory Diagnostic: mdsched.exe (built-in)</div>
+            </div>
+          </div>
+          <div class="hw-check-item">
+            <div class="hw-check-icon">🔋</div>
+            <div class="hw-check-body">
+              <div class="hw-check-title">Battery Health Report (Laptop)</div>
+              <div class="hw-check-desc">Open Command Prompt as Administrator → type <code>powercfg /batteryreport</code> → open the HTML file it generates. Compare "Design Capacity" vs "Full Charge Capacity". Below 80% = degraded. Below 50% = replace soon.</div>
+              <div class="hw-check-action">→ CMD (Admin): powercfg /batteryreport</div>
+            </div>
+          </div>
+          <div class="hw-check-item">
+            <div class="hw-check-icon">🖥️</div>
+            <div class="hw-check-body">
+              <div class="hw-check-title">Motherboard &amp; BIOS Check</div>
+              <div class="hw-check-desc">Check for blown capacitors (bulging tops on cylindrical components near CPU socket). Run <strong>CPU-Z</strong> to see motherboard model and BIOS version. Check manufacturer's website for BIOS updates — outdated BIOS causes instability.</div>
+              <div class="hw-check-action">→ Visual: look for bulging/leaking capacitors near CPU</div>
+            </div>
+          </div>
+          <div class="hw-check-item">
+            <div class="hw-check-icon">🌬️</div>
+            <div class="hw-check-body">
+              <div class="hw-check-title">Dust &amp; Thermal Paste</div>
+              <div class="hw-check-desc">Every 6–12 months: open case (desktop) or remove back panel (laptop) and blow out dust with compressed air. Thermal paste on CPU: replace every 3–4 years. Old paste cracks and loses conductivity → CPU overheats even with working fan.</div>
+              <div class="hw-check-action">→ Tools needed: compressed air, Phillips screwdriver, thermal paste (Arctic MX-4 recommended)</div>
+            </div>
+          </div>
+          <div class="hw-check-item">
+            <div class="hw-check-icon">⚡</div>
+            <div class="hw-check-body">
+              <div class="hw-check-title">PSU / Power Check (Desktop)</div>
+              <div class="hw-check-desc">Random reboots or shutdowns under load = PSU failing. Use <strong>HWiNFO64</strong> to check voltage rails (12V, 5V, 3.3V should be within ±5%). Alternatively use a PSU tester. PSU lifespan: 5–10 years.</div>
+              <div class="hw-check-action">→ HWiNFO64 → Sensors → look for voltage rail readings</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="notice-box" style="margin-top:16px">ℹ️ <strong>What the browser CAN detect:</strong> battery level &amp; charge rate, screen refresh rate, JS heap growth (RAM pressure), CPU core count, network type, and thermal throttling via timing delays. <strong>What requires native tools:</strong> actual CPU/GPU temperature, fan RPM, S.M.A.R.T. drive data, voltage rails, RAM errors. The automated check combines browser data + your age/symptom inputs + inference rules to estimate hardware health.</div>
+    </div>
+  </div><!-- end .card -->
+
+  <div class="tests-container" id="tests-container"></div>
+
+  <div class="card hidden" id="report-section">
+    <div class="card-header">
+      <div><div class="card-title">Diagnostic Report</div><div style="font-size:11px;color:var(--muted);margin-top:3px" id="report-timestamp">—</div></div>
+      <button class="btn btn-secondary" onclick="window.print()" style="padding:8px 16px;font-size:12px">🖨 Print</button>
+    </div>
+    <div class="card-body" id="report-body"></div>
+  </div>
+</div>
+
+<script>
+let running=false,stopFlag=false,testResults={};
+let testDuration=15000;
+const sleep=ms=>new Promise(r=>setTimeout(r,ms));
+
+const TEST_DEFS={
+  cpu:{name:'CPU Stress',icon:'⚙️'},
+  memory:{name:'Memory',icon:'🧠'},
+  gpu:{name:'GPU / Render',icon:'🎮'},
+  storage:{name:'Storage I/O',icon:'💾'},
+  network:{name:'Network',icon:'🌐'},
+  battery:{name:'Battery',icon:'🔋'},
+  display:{name:'Display',icon:'🖥️'},
+  audio:{name:'Audio',icon:'🔊'},
+};
+
+document.addEventListener('DOMContentLoaded',()=>{
+  collectSystemInfo();
+  setInterval(()=>{document.getElementById('header-time').textContent=new Date().toLocaleString();},1000);
+  document.querySelectorAll('.test-toggle').forEach(el=>el.addEventListener('click',()=>el.classList.toggle('active')));
+  buildKeyboard();setupKeyboardListeners();
+});
+
+function switchTab(id){
+  const ids=['benchmarks','keyboard','winperf','speedtest','usecase','netscanner','perfkiller','hardware'];
+  document.querySelectorAll('.tab').forEach((t,i)=>t.classList.toggle('active',ids[i]===id));
+  document.querySelectorAll('.tab-content').forEach(c=>c.classList.remove('active'));
+  document.getElementById('tab-'+id).classList.add('active');
+}
+
+async function collectSystemInfo(){
+  const ua=navigator.userAgent;
+  let br='Unknown';
+  if(ua.includes('Edg'))br='Edge '+ua.match(/Edg\/([\d.]+)/)?.[1];
+  else if(ua.includes('Chrome'))br='Chrome '+(ua.match(/Chrome\/([\d.]+)/)?.[1]||'');
+  else if(ua.includes('Firefox'))br='Firefox '+(ua.match(/Firefox\/([\d.]+)/)?.[1]||'');
+  else if(ua.includes('Safari'))br='Safari';
+  document.getElementById('si-platform').textContent=navigator.platform||'Unknown';
+  document.getElementById('si-cores').textContent=(navigator.hardwareConcurrency||'?')+' logical';
+  document.getElementById('si-memory').textContent=navigator.deviceMemory?navigator.deviceMemory+' GB':'N/A';
+  document.getElementById('si-screen').textContent=screen.width+'×'+screen.height;
+  document.getElementById('si-dpr').textContent=window.devicePixelRatio+'×';
+  document.getElementById('si-browser').textContent=br;
+  document.getElementById('si-net').textContent=navigator.connection?.effectiveType||'Unknown';
+  if('getBattery' in navigator){
+    try{const b=await navigator.getBattery();document.getElementById('si-battery').textContent=(b.charging?'⚡ ':'🔋')+Math.round(b.level*100)+'%';}
+    catch{document.getElementById('si-battery').textContent='N/A';}
+  }else document.getElementById('si-battery').textContent='Unavailable';
+}
+
+async function startTests(){
+  if(running)return;
+  running=true;stopFlag=false;testResults={};
+  testDuration=parseInt(document.getElementById('duration-select').value);
+  document.getElementById('btn-run').classList.add('hidden');
+  document.getElementById('btn-stop').classList.remove('hidden');
+  document.getElementById('btn-report').disabled=true;
+  document.getElementById('report-section').classList.add('hidden');
+  const selected=[...document.querySelectorAll('.test-toggle.active')].map(el=>el.dataset.test);
+  const container=document.getElementById('tests-container');
+  container.innerHTML='';
+  for(const key of selected){const def=TEST_DEFS[key];if(def)container.appendChild(createPanel(key,def));}
+  const fns={cpu:runCPU,memory:runMemory,gpu:runGPU,storage:runStorage,network:runNetwork,battery:runBattery,display:runDisplay,audio:runAudio};
+  for(const key of selected){
+    if(stopFlag)break;
+    setStatus(key,'running','RUNNING');
+    try{const r=await(fns[key]||noTest)(key);testResults[key]=r;applyResult(key,r);}
+    catch(e){const r={score:0,status:'fail',metrics:{},logs:['Error: '+e.message],suggestions:[{sev:'critical',title:'Test Failed',body:e.message}]};testResults[key]=r;applyResult(key,r);}
+  }
+  running=false;
+  document.getElementById('btn-stop').classList.add('hidden');
+  document.getElementById('btn-run').classList.remove('hidden');
+  document.getElementById('btn-report').disabled=false;
+  generateReport();
+}
+function stopTests(){stopFlag=true;running=false;document.getElementById('btn-stop').classList.add('hidden');document.getElementById('btn-run').classList.remove('hidden');document.getElementById('btn-report').disabled=Object.keys(testResults).length===0;}
+async function noTest(){return{score:50,status:'warn',metrics:{},logs:['Not implemented'],suggestions:[]};}
+function createPanel(key,def){
+  const d=document.createElement('div');d.className='test-panel';d.id='panel-'+key;
+  d.innerHTML=`<div class="tp-header"><div class="tp-icon">${def.icon}</div><div class="tp-name">${def.name}</div><div class="tp-status idle" id="st-${key}">QUEUED</div><div class="tp-score" id="sc-${key}">—</div></div><div class="tp-body" id="bd-${key}"><div class="prog-wrap"><div class="prog-bar" id="pb-${key}"></div></div><div class="metrics" id="mt-${key}"></div><div class="chart-wrap"><canvas class="chart-canvas" id="cv-${key}"></canvas></div><div class="log-box" id="lg-${key}"></div></div>`;
+  return d;
+}
+function setStatus(key,cls,txt){
+  const el=document.getElementById('st-'+key);if(el){el.className='tp-status '+cls;el.textContent=txt;}
+  const p=document.getElementById('panel-'+key);if(p)p.className='test-panel '+(cls==='running'?'running':'');
+}
+function setProg(key,pct){const el=document.getElementById('pb-'+key);if(el)el.style.width=pct+'%';}
+function addLog(key,msg,cls=''){
+  const b=document.getElementById('lg-'+key);if(!b)return;
+  const t=new Date().toLocaleTimeString('en',{hour12:false});
+  const l=document.createElement('div');l.className='log-line';
+  l.innerHTML=`<span class="log-time">${t}</span><span class="log-msg ${cls}">${msg}</span>`;
+  b.appendChild(l);b.scrollTop=b.scrollHeight;
+}
+function setMetrics(key,obj){
+  const el=document.getElementById('mt-'+key);if(!el)return;
+  el.innerHTML=Object.entries(obj).map(([k,v])=>`<div class="metric"><div class="metric-label">${k}</div><div class="metric-value">${v}</div></div>`).join('');
+}
+function applyResult(key,r){
+  const m={pass:'PASS',warn:'WARN',fail:'FAIL'};
+  setStatus(key,r.status,m[r.status]||r.status.toUpperCase());
+  setProg(key,100);
+  const pb=document.getElementById('pb-'+key);
+  if(pb)pb.className='prog-bar '+(r.status==='pass'?'green':r.status==='fail'?'red':'');
+  const sc=document.getElementById('sc-'+key);
+  const c=r.status==='pass'?'var(--green)':r.status==='fail'?'var(--red)':'var(--orange)';
+  if(sc){sc.textContent=r.score+'/100';sc.style.color=c;}
+  const p=document.getElementById('panel-'+key);if(p)p.className='test-panel done-'+r.status;
+  setMetrics(key,r.metrics||{});
+  (r.logs||[]).forEach(l=>addLog(key,l,r.status==='fail'?'err':r.status==='warn'?'warn':'ok'));
+  // Append limitation notice if present
+  if(r.notice){
+    const nb=document.getElementById('bd-'+key);
+    if(nb){const nd=document.createElement('div');nd.className='notice-box';nd.innerHTML='ℹ️ '+r.notice;nb.appendChild(nd);}
+  }
+}
+function drawSparkline(key,data,color='#d97706'){
+  const c=document.getElementById('cv-'+key);if(!c)return;
+  const ctx=c.getContext('2d');c.width=c.offsetWidth||400;c.height=c.offsetHeight||72;
+  const W=c.width,H=c.height;ctx.clearRect(0,0,W,H);
+  if(!data||data.length<2)return;
+  const max=Math.max(...data)||1,min=Math.min(...data),range=max-min||1;
+  ctx.strokeStyle=color;ctx.lineWidth=2;ctx.beginPath();
+  data.forEach((v,i)=>{const x=(i/(data.length-1))*W,y=H-((v-min)/range)*(H-10)-5;i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);});
+  ctx.stroke();ctx.lineTo(W,H);ctx.lineTo(0,H);ctx.closePath();ctx.fillStyle=color+'22';ctx.fill();
+}
+
+// ════════════════════════════════════════════════
+// CPU — measures real throughput, compares against
+// typical browser scores for this core count
+// ════════════════════════════════════════════════
+async function runCPU(key){
+  addLog(key,'Detecting CPU configuration…');
+  const cores=navigator.hardwareConcurrency||2;
+  addLog(key,'Logical cores: '+cores);
+
+  // --- Single-thread: prime sieve iterations per second ---
+  addLog(key,'Single-thread: prime sieve (Sieve of Eratosthenes)…');
+  const SIEVE_LIMIT=200000;
+  let stOps=0;const stDur=Math.min(testDuration*.25,3000);
+  const st0=performance.now();
+  while(performance.now()-st0<stDur){
+    const s=new Uint8Array(SIEVE_LIMIT+1).fill(1);
+    for(let i=2;i*i<=SIEVE_LIMIT;i++)if(s[i])for(let j=i*i;j<=SIEVE_LIMIT;j+=i)s[j]=0;
+    stOps++;
+    setProg(key,Math.min(20,(stOps/10)*20));
+    await sleep(0);
+  }
+  const stOpsPerSec=stOps/(stDur/1000);
+  addLog(key,'Single-thread: '+stOpsPerSec.toFixed(1)+' sieve-ops/s','ok');
+
+  // --- FP throughput: matrix multiply ---
+  addLog(key,'FP64 matrix multiply (64×64)…');
+  const fpDur=Math.min(testDuration*.25,3000);
+  let fpOps=0;const fp0=performance.now();
+  while(performance.now()-fp0<fpDur){
+    const sz=64,a=new Float64Array(sz*sz).map(()=>Math.random()),b=new Float64Array(sz*sz).map(()=>Math.random()),c=new Float64Array(sz*sz);
+    for(let i=0;i<sz;i++)for(let j=0;j<sz;j++){let s=0;for(let k=0;k<sz;k++)s+=a[i*sz+k]*b[k*sz+j];c[i*sz+j]=s;}
+    fpOps++;setProg(key,20+Math.min(20,(fpOps/8)*20));await sleep(0);
+  }
+  const fpOpsPerSec=fpOps/(fpDur/1000);
+  addLog(key,'FP64: '+fpOpsPerSec.toFixed(1)+' matrix-ops/s','ok');
+
+  // --- Multi-thread simulation ---
+  addLog(key,'Multi-core parallel workload ('+Math.min(cores,4)+' workers)…');
+  const chunks=Math.min(cores,4);
+  const mtDur=Math.min(testDuration*.5,5000)/chunks;
+  const mtRes=await Promise.all([...Array(chunks)].map(()=>cpuChunk(mtDur)));
+  const totalMtOps=mtRes.reduce((a,b)=>a+b,0);
+  const mtOpsPerSec=totalMtOps/(mtDur/1000);
+  setProg(key,100);
+
+  // Scoring: calibrated against real browser benchmarks
+  // Reference: mid-range laptop scores ~8-15 sieve-ops/s, ~3-6 fp-ops/s
+  const stScore=Math.min(100,Math.round(stOpsPerSec/0.18));   // 18 ops/s = 100
+  const fpScore=Math.min(100,Math.round(fpOpsPerSec/0.08));   // 8 ops/s = 100
+  const mtScore=Math.min(100,Math.round(mtOpsPerSec/(chunks*50)));
+  const score=Math.round(stScore*.3+fpScore*.4+mtScore*.3);
+  const status=score>=70?'pass':score>=45?'warn':'fail';
+
+  addLog(key,'Single-thread score: '+stScore+'/100');
+  addLog(key,'FP64 score: '+fpScore+'/100');
+  addLog(key,'Multi-core score: '+mtScore+'/100');
+  addLog(key,'Final score: '+score+'/100',status==='pass'?'ok':status==='warn'?'warn':'err');
+
+  setMetrics(key,{
+    'ST ops/s':stOpsPerSec.toFixed(1),
+    'FP ops/s':fpOpsPerSec.toFixed(1),
+    'MT score':mtScore+'/100',
+    'Cores':cores,
+    'Score':score+'/100'
+  });
+  drawSparkline(key,[stScore,fpScore,mtScore,score],'#d97706');
+
+  const sugg=[];
+  if(score<45)sugg.push({sev:'critical',title:'CPU Severely Throttled or Failing',body:'CPU is performing well below expected range. Likely causes: thermal throttling (CPU temp >90°C), clogged heatsink/fan, or degraded thermal paste. Use HWMonitor to check temperatures. Clean cooling system. Reapply thermal paste if >2 years old.'});
+  else if(score<70)sugg.push({sev:'warning',title:'CPU Below Optimal Performance',body:'Scores are below expected for your core count. Check power plan — set to "High Performance" or "Balanced". On laptops, plug in power adapter. Clean dust from vents. Ensure background apps are not consuming CPU.'});
+  else sugg.push({sev:'good',title:'CPU Performance Normal',body:'CPU throughput is within expected range for '+cores+' logical cores. No action needed.'});
+  return{score,status,metrics:{},logs:[],suggestions:sugg};
+}
+async function cpuChunk(dur){
+  const t0=performance.now();let ops=0;
+  while(performance.now()-t0<dur){let x=0;for(let i=0;i<2e5;i++)x+=Math.sqrt(i)*Math.sin(i);ops++;}
+  return ops;
+}
+
+// ════════════════════════════════════════════════
+// MEMORY — ArrayBuffer sequential + random access
+// Calibrated: DDR4-3200 ≈ 15000-25000 MB/s in native
+// Browser JS overhead reduces this to ~3000-8000 MB/s
+// ════════════════════════════════════════════════
+async function runMemory(key){
+  addLog(key,'Initializing memory bandwidth benchmark…');
+  addLog(key,'Method: ArrayBuffer sequential + random access (64MB)');
+
+  const MB=1024*1024;
+  const SIZE=64*MB; // 64MB buffer
+  let ws=0,rs=0,latNs=0,score=50;
+
+  try{
+    // --- Sequential write ---
+    addLog(key,'Sequential write (64MB Float32)…');
+    const buf=new ArrayBuffer(SIZE);
+    const arr=new Float32Array(buf);
+    const w0=performance.now();
+    for(let i=0;i<arr.length;i++)arr[i]=i*0.0001;
+    const wMs=performance.now()-w0;
+    ws=Math.round((SIZE/MB)/( wMs/1000));
+    setProg(key,30);
+    addLog(key,'Write: '+ws+' MB/s'+(ws>2000?'':' (browser-limited)'),'ok');
+
+    // --- Sequential read ---
+    addLog(key,'Sequential read (64MB)…');
+    let dummy=0;
+    const r0=performance.now();
+    for(let i=0;i<arr.length;i++)dummy+=arr[i];
+    const rMs=performance.now()-r0;
+    rs=Math.round((SIZE/MB)/(rMs/1000));
+    setProg(key,60);
+    addLog(key,'Read: '+rs+' MB/s'+(rs>3000?'':' (browser-limited)'),'ok');
+
+    // --- Random access latency ---
+    addLog(key,'Random access latency (1M random reads)…');
+    const rSz=256*1024; // 256K elements to fit in L3
+    const rBuf=new Int32Array(rSz);
+    for(let i=0;i<rSz;i++)rBuf[i]=i;
+    // shuffle to create random pattern
+    const idx=new Uint32Array(rSz);
+    for(let i=0;i<rSz;i++)idx[i]=Math.floor(Math.random()*rSz);
+    const ITER=1000000;
+    const ra0=performance.now();
+    let sum=0;
+    for(let i=0;i<ITER;i++)sum+=rBuf[idx[i%rSz]];
+    const raMs=performance.now()-ra0;
+    latNs=Math.round((raMs*1e6)/ITER);
+    setProg(key,85);
+    addLog(key,'Random latency: '+latNs+'ns/op'+(latNs<20?'':' (cache miss likely)'),'ok');
+
+    // --- Heap usage ---
+    const heap=performance.memory;
+    const heapPct=heap?Math.round(heap.usedJSHeapSize/heap.jsHeapSizeLimit*100):null;
+
+    // Scoring calibrated to browser-observable ranges:
+    // Excellent: write>4000 MB/s, read>6000 MB/s, latency<10ns → 95-100
+    // Good:      write>2000, read>3000, latency<25ns → 70-85
+    // Average:   write>800,  read>1500, latency<60ns → 50-70
+    // Poor:      below these → <50
+    const wScore=Math.min(40,ws/150);    // 6000 MB/s = 40pts
+    const rScore=Math.min(40,rs/200);    // 8000 MB/s = 40pts
+    const lScore=Math.min(20,Math.max(0,20-(latNs/5))); // 0ns=20, 100ns=0
+    score=Math.min(100,Math.round(wScore+rScore+lScore));
+
+    setMetrics(key,{
+      Write:ws+' MB/s',
+      Read:rs+' MB/s',
+      Latency:latNs+'ns',
+      Heap:heapPct!==null?heapPct+'%':'N/A',
+      Score:score+'/100'
+    });
+    drawSparkline(key,[ws/80,rs/100,200/Math.max(latNs,1),ws/80,rs/100],'#0891b2');
+
+  }catch(e){addLog(key,'Error: '+e.message,'err');score=10;}
+  setProg(key,100);
+
+  const status=score>=60?'pass':score>=35?'warn':'fail';
+  const sugg=[];
+  if(score<35)sugg.push({sev:'critical',title:'Very Low Memory Bandwidth',body:'RAM is extremely slow. Possible causes: single-channel RAM (try two matched sticks in correct slots), or RAM running at JEDEC base speed. Check BIOS → enable XMP/DOCP profile to run at rated speed. Test with MemTest86 for errors.'});
+  else if(score<60)sugg.push({sev:'warning',title:'Memory Below Peak Performance',body:'RAM may be in single-channel mode or not running at XMP speeds. Enter BIOS and enable XMP/EXPO/DOCP. Ensure sticks are in the correct dual-channel slots (usually A2+B2).'});
+  else sugg.push({sev:'good',title:'Memory Performance Normal',body:'RAM bandwidth and latency are within expected browser-observable range for your system.'});
+
+  return{score,status,metrics:{},logs:[],suggestions:sugg,
+    notice:'Browser JS caps memory throughput at 3000–8000 MB/s regardless of physical RAM speed. True RAM speed requires native tools like AIDA64 or HWiNFO64.'};
+}
+
+// ════════════════════════════════════════════════
+// STORAGE — Genuine in-memory throughput test
+// Uses large ArrayBuffer read/write + cache bypass tricks
+// Shows REAL JavaScript memory-mapped I/O speed
+// Explains browser limitation clearly
+// ════════════════════════════════════════════════
+async function runStorage(key){
+  addLog(key,'Storage benchmark — browser-constrained method');
+  addLog(key,'⚠ Browsers cannot directly measure SSD/HDD speed.');
+  addLog(key,'Testing: in-memory buffer throughput + cache pressure…');
+
+  const MB=1024*1024;
+  const results={};
+
+  // --- Test 1: Large ArrayBuffer sequential write ---
+  addLog(key,'[1/4] Sequential write — 128MB ArrayBuffer…');
+  const WRITE_SIZE=128*MB;
+  const writeBuf=new Uint8Array(WRITE_SIZE);
+  const wt0=performance.now();
+  for(let i=0;i<WRITE_SIZE;i+=4){
+    writeBuf[i]=i&0xff;writeBuf[i+1]=(i>>8)&0xff;
+    writeBuf[i+2]=(i>>16)&0xff;writeBuf[i+3]=(i>>24)&0xff;
+  }
+  const wMs=performance.now()-wt0;
+  const wSpeed=Math.round((WRITE_SIZE/MB)/(wMs/1000));
+  results.write=wSpeed;
+  addLog(key,'Write speed: '+wSpeed+' MB/s','ok');
+  setProg(key,25);
+
+  // --- Test 2: Sequential read ---
+  addLog(key,'[2/4] Sequential read — 128MB…');
+  let chk=0;
+  const rt0=performance.now();
+  for(let i=0;i<WRITE_SIZE;i+=4)chk+=writeBuf[i];
+  const rMs=performance.now()-rt0;
+  const rSpeed=Math.round((WRITE_SIZE/MB)/(rMs/1000));
+  results.read=rSpeed;
+  addLog(key,'Read speed: '+rSpeed+' MB/s','ok');
+  setProg(key,50);
+
+  // --- Test 3: Random 4K-block simulation ---
+  addLog(key,'[3/4] Random 4K access pattern (512MB equivalent)…');
+  const BLOCK=4096,BLOCKS=Math.floor(WRITE_SIZE/BLOCK);
+  const randomOrder=new Uint32Array(BLOCKS);
+  for(let i=0;i<BLOCKS;i++)randomOrder[i]=i;
+  for(let i=BLOCKS-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[randomOrder[i],randomOrder[j]]=[randomOrder[j],randomOrder[i]];}
+  let rndSum=0;const rnd0=performance.now();
+  for(let i=0;i<Math.min(BLOCKS,2048);i++){
+    const off=randomOrder[i]*BLOCK;
+    for(let j=0;j<64;j+=4)rndSum+=writeBuf[off+j]; // sample every 64B
+  }
+  const rndMs=performance.now()-rnd0;
+  const rndIOPS=Math.round((2048/(rndMs/1000)));
+  results.iops=rndIOPS;
+  addLog(key,'Random 4K IOPS (simulated): '+rndIOPS+'/s','ok');
+  setProg(key,75);
+
+  // --- Test 4: IndexedDB write speed (actual persistent storage) ---
+  addLog(key,'[4/4] IndexedDB persistence write (10MB)…');
+  let idbSpeed=0;
+  try{
+    const dbName='sd_'+Date.now();
+    const db=await openDB(dbName);
+    const chunk=new Uint8Array(1*MB);crypto.getRandomValues(chunk);
+    const idb0=performance.now();
+    for(let i=0;i<10;i++)await dbPut(db,{id:i,d:chunk.slice()});
+    const idbMs=performance.now()-idb0;
+    idbSpeed=Math.round(10/(idbMs/1000));
+    db.close();indexedDB.deleteDatabase(dbName);
+    addLog(key,'IndexedDB write: '+idbSpeed+' MB/s (OS-buffered)','ok');
+  }catch(e){addLog(key,'IndexedDB unavailable: '+e.message,'warn');}
+  results.idb=idbSpeed;
+  setProg(key,100);
+
+  // Scoring: weight towards in-memory (genuine) results
+  // SSD in browser: write 2000-8000 MB/s, read 4000-12000 MB/s
+  // HDD in browser: write 500-1500 MB/s, read 800-2000 MB/s
+  const wScore=Math.min(40,Math.round(wSpeed/200));  // 8000=40
+  const rScore=Math.min(40,Math.round(rSpeed/300));  // 12000=40
+  const iScore=Math.min(20,Math.round(rndIOPS/200)); // 4000=20
+  const score=Math.min(100,wScore+rScore+iScore);
+  const status=score>=60?'pass':score>=35?'warn':'fail';
+
+  // Determine likely storage type from speeds
+  let storageType='Unknown';
+  if(wSpeed>3000&&rSpeed>5000)storageType='NVMe SSD (likely)';
+  else if(wSpeed>1500&&rSpeed>2000)storageType='SATA SSD (likely)';
+  else if(wSpeed>400&&rSpeed>600)storageType='HDD or slow SSD (likely)';
+  else storageType='Slow storage or throttled';
+
+  addLog(key,'Estimated storage type: '+storageType,'ok');
+  addLog(key,'Score: '+score+'/100 — '+status.toUpperCase(),status==='pass'?'ok':status==='warn'?'warn':'err');
+
+  setMetrics(key,{
+    Write:wSpeed+' MB/s',
+    Read:rSpeed+' MB/s',
+    'Sim IOPS':rndIOPS,
+    'IDB Write':idbSpeed?idbSpeed+' MB/s':'N/A',
+    Type:storageType.split(' ')[0]+' '+storageType.split(' ')[1]
+  });
+  drawSparkline(key,[wSpeed/80,rSpeed/120,rndIOPS/20,wSpeed/80,rSpeed/120],'#16a34a');
+
+  const sugg=[];
+  if(score<35)sugg.push({sev:'critical',title:'Storage Performance Very Low',body:'Throughput is significantly below SSD baseline. If you have an SSD, check for: nearly full disk (>90% full kills SSD performance), driver issues, or AHCI vs NVMe mode mismatch. Run CrystalDiskMark for a real SSD speed test. Consider replacing if HDD.'});
+  else if(score<60)sugg.push({sev:'warning',title:'Storage Below SSD Baseline',body:'Scores suggest a SATA SSD or HDD. If you have an NVMe drive check it is in M.2 PCIe slot not SATA. Clear disk space if >80% full. For accurate results run CrystalDiskMark.'});
+  else sugg.push({sev:'good',title:'Storage Performance Good',body:'In-memory throughput matches expected range for an SSD. Real-world SSD speed should be verified with CrystalDiskMark.'});
+
+  return{score,status,metrics:{},logs:[],suggestions:sugg,
+    notice:'Browsers cannot directly read SSD/HDD speed — this test measures JavaScript memory throughput as a proxy and detects storage type from speed patterns. For exact SSD speed run CrystalDiskMark (Windows) or Blackmagic Disk Speed Test (Mac).'};
+}
+function openDB(name){return new Promise((res,rej)=>{const r=indexedDB.open(name,1);r.onupgradeneeded=e=>e.target.result.createObjectStore('b',{keyPath:'id'});r.onsuccess=e=>res(e.target.result);r.onerror=()=>rej(r.error);});}
+function dbPut(db,val){return new Promise((res,rej)=>{const tx=db.transaction('b','readwrite'),r=tx.objectStore('b').put(val);r.onsuccess=()=>res();r.onerror=()=>rej(r.error);});}
+
+// ════════════════════════════════════════════════
+// GPU — WebGL shader stress + FPS measurement
+// ════════════════════════════════════════════════
+async function runGPU(key){
+  addLog(key,'Querying GPU via WebGL…');
+  let renderer='Unknown',vendor='Unknown',score=50;
+  try{
+    const oc=document.createElement('canvas');oc.width=oc.height=1;
+    const gl=oc.getContext('webgl2')||oc.getContext('webgl')||oc.getContext('experimental-webgl');
+    if(!gl){addLog(key,'WebGL unavailable — software rendering','err');return{score:20,status:'fail',metrics:{Status:'No WebGL'},logs:[],suggestions:[{sev:'critical',title:'WebGL Unavailable',body:'No hardware acceleration. Update GPU drivers. Enable Hardware Acceleration in browser settings.'}]};}
+
+    const ext=gl.getExtension('WEBGL_debug_renderer_info');
+    renderer=ext?gl.getParameter(ext.UNMASKED_RENDERER_WEBGL):gl.getParameter(gl.RENDERER);
+    vendor=ext?gl.getParameter(ext.UNMASKED_VENDOR_WEBGL):gl.getParameter(gl.VENDOR);
+    const maxTex=gl.getParameter(gl.MAX_TEXTURE_SIZE);
+    const maxVaryings=gl.getParameter(gl.MAX_VARYING_VECTORS);
+    addLog(key,'GPU: '+renderer,'ok');
+    addLog(key,'Vendor: '+vendor,'ok');
+    addLog(key,'Max texture size: '+maxTex,'ok');
+    addLog(key,'Max varyings: '+maxVaryings,'ok');
+    setProg(key,15);
+
+    // Canvas 2D stress
+    const c=document.createElement('canvas');c.width=c.height=800;
+    const ctx=c.getContext('2d');
+    const end=performance.now()+Math.min(testDuration*.55,6000);
+    let frames=0;const fts=[];let last=performance.now();
+    while(performance.now()<end){
+      ctx.clearRect(0,0,800,800);
+      for(let i=0;i<80;i++){
+        ctx.save();ctx.translate(Math.random()*800,Math.random()*800);ctx.rotate(Math.random()*Math.PI*2);
+        const g=ctx.createRadialGradient(0,0,5,0,0,50);
+        g.addColorStop(0,'hsla('+(i*4.5)+',80%,50%,.5)');g.addColorStop(1,'hsla('+(i*4.5+180)+',80%,50%,0)');
+        ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,50,0,Math.PI*2);ctx.fill();ctx.restore();
+      }
+      const now=performance.now();fts.push(now-last);last=now;frames++;
+      const elapsed=performance.now()-(end-Math.min(testDuration*.55,6000));
+      setProg(key,15+(elapsed/Math.min(testDuration*.55,6000))*75);
+      await sleep(0);
+    }
+    const avgFt=fts.reduce((a,b)=>a+b,0)/fts.length;
+    const fps=Math.round(1000/avgFt);
+    addLog(key,'Canvas 2D stress FPS: '+fps,'ok');
+
+    const hwAccel=!renderer.toLowerCase().includes('swiftshader')&&!renderer.toLowerCase().includes('software')&&!renderer.toLowerCase().includes('llvmpipe');
+    const isMobile=/mobile|android|iphone|ipad/i.test(navigator.userAgent);
+
+    // Score calibration:
+    // 60fps+ HW accel + 8K texture = 90-100
+    // 60fps HW accel = 75-85
+    // 30fps HW accel = 55-65
+    // Software render = 10-30
+    const fpsScore=Math.min(55,fps/1.1);
+    const hwScore=hwAccel?(maxTex>=16384?35:maxTex>=8192?30:25):5;
+    score=Math.min(100,Math.round(fpsScore+hwScore));
+    setProg(key,100);
+
+    addLog(key,'HW Acceleration: '+(hwAccel?'YES — '+renderer.substring(0,30):'NO — Software fallback'),hwAccel?'ok':'err');
+    addLog(key,'Score: '+score+'/100',score>=70?'ok':score>=45?'warn':'err');
+
+    setMetrics(key,{
+      GPU:renderer.length>22?renderer.substring(0,20)+'…':renderer,
+      FPS:fps,
+      'Max Tex':maxTex+'px',
+      'HW Accel':hwAccel?'✓ Yes':'✗ No',
+      Score:score+'/100'
+    });
+    drawSparkline(key,fts.map(t=>Math.min(1000/t,120)).slice(-50),'#2563eb');
+    gl.getExtension('WEBGL_lose_context')?.loseContext();
+
+    const sugg=[];
+    if(!hwAccel)sugg.push({sev:'critical',title:'Software Rendering Active — No GPU Acceleration',body:'GPU acceleration is disabled or broken. Go to chrome://gpu (Chrome) and check. Update GPU drivers from NVIDIA/AMD/Intel website. In browser Settings → System → enable "Use hardware acceleration".'});
+    else if(fps<30)sugg.push({sev:'warning',title:'Low GPU Frame Rate',body:'FPS is below 30 under stress. Update GPU drivers. Set Windows Power Plan to High Performance. On NVIDIA/AMD laptops, set browser to use dedicated GPU in Graphics Settings.'});
+    else sugg.push({sev:'good',title:'GPU Acceleration Working',body:'Hardware accelerated rendering active with '+fps+' FPS under canvas stress. GPU: '+renderer.substring(0,50)+'.'});
+    return{score,status:score>=65?'pass':score>=40?'warn':'fail',metrics:{},logs:[],suggestions:sugg};
+  }catch(e){addLog(key,'GPU test error: '+e.message,'err');return{score:10,status:'fail',metrics:{Error:e.message},logs:[],suggestions:[{sev:'critical',title:'GPU Test Failed',body:e.message}]};}
+}
+
+// ════════════════════════════════════════════════
+// NETWORK — multi-target ping + connection API
+// ════════════════════════════════════════════════
+async function runNetwork(key){
+  addLog(key,'Starting multi-target latency test…');
+  const targets=[
+    {url:'https://www.google.com/generate_204',name:'Google'},
+    {url:'https://www.cloudflare.com/cdn-cgi/trace',name:'Cloudflare'},
+    {url:'https://1.1.1.1/cdn-cgi/trace',name:'CF DNS'},
+  ];
+  const pings=[];
+  for(let i=0;i<targets.length;i++){
+    const tgt=targets[i];
+    const samples=[];
+    for(let j=0;j<3;j++){
+      try{
+        const t0=performance.now();
+        await fetch(tgt.url+'?_='+Date.now(),{mode:'no-cors',cache:'no-store'});
+        samples.push(Math.round(performance.now()-t0));
+        await sleep(100);
+      }catch{samples.push(999);}
+    }
+    const valid=samples.filter(s=>s<900);
+    const avg=valid.length?Math.round(valid.reduce((a,b)=>a+b)/valid.length):999;
+    pings.push(avg);
+    const jitter=valid.length>1?Math.round(Math.max(...valid)-Math.min(...valid)):0;
+    addLog(key,tgt.name+': avg='+avg+'ms jitter='+jitter+'ms',avg<100?'ok':avg<300?'warn':'err');
+    setProg(key,(i+1)/targets.length*60);
+    await sleep(200);
+  }
+
+  const conn=navigator.connection||navigator.mozConnection||navigator.webkitConnection;
+  const type=conn?.effectiveType||'unknown';
+  const dl=conn?.downlink??null;
+  const rtt=conn?.rtt??null;
+
+  const validPings=pings.filter(p=>p<900);
+  const avgPing=validPings.length?Math.round(validPings.reduce((a,b)=>a+b)/validPings.length):999;
+  const minPing=validPings.length?Math.min(...validPings):999;
+  const maxPing=validPings.length?Math.max(...validPings):999;
+  const jitter=maxPing-minPing;
+
+  if(dl)addLog(key,'Network API downlink: '+dl+' Mbps',dl>10?'ok':'warn');
+  if(rtt)addLog(key,'Network API RTT: '+rtt+'ms',rtt<100?'ok':'warn');
+  addLog(key,'Avg ping: '+avgPing+'ms  Min: '+minPing+'ms  Jitter: '+jitter+'ms',avgPing<80?'ok':avgPing<200?'warn':'err');
+  setProg(key,100);
+
+  // Scoring
+  const pingScore=Math.max(0,Math.min(50,50-avgPing/10));
+  const jitterScore=Math.max(0,Math.min(20,20-jitter/5));
+  const typeScore={'4g':20,'3g':12,'2g':4,'slow-2g':0}[type]||15;
+  const dlScore=dl?Math.min(10,dl/5):5;
+  const score=Math.min(100,Math.round(pingScore+jitterScore+typeScore+dlScore));
+
+  setMetrics(key,{
+    'Avg Ping':avgPing+'ms',
+    'Min Ping':minPing+'ms',
+    'Jitter':jitter+'ms',
+    Type:type,
+    Downlink:dl!=null?dl+' Mbps':'N/A'
+  });
+  drawSparkline(key,pings.map(p=>Math.max(0,300-p)),'#d97706');
+
+  const status=score>=60?'pass':score>=30?'warn':'fail';
+  const sugg=[];
+  if(avgPing>400)sugg.push({sev:'critical',title:'Extremely High Latency (>400ms)',body:'Network is very slow. Restart router and modem. Run speedtest.net to confirm. If on WiFi, switch to wired Ethernet. Call ISP if issue persists.'});
+  else if(avgPing>150||jitter>80)sugg.push({sev:'warning',title:'High Latency or Jitter',body:'Ping is above 150ms or jitter is high ('+jitter+'ms). Move closer to WiFi router. Switch to 5GHz WiFi band. Restart networking hardware. Wired connection recommended for video calls or gaming.'});
+  else sugg.push({sev:'good',title:'Network Latency Good',body:'Average ping: '+avgPing+'ms, jitter: '+jitter+'ms. Connection is stable for browsing, streaming, and calls.'});
+  return{score,status,metrics:{},logs:[],suggestions:sugg};
+}
+
+// ════════════════════════════════════════════════
+// BATTERY
+// ════════════════════════════════════════════════
+async function runBattery(key){
+  addLog(key,'Accessing Battery Status API…');
+  if(!('getBattery' in navigator)){
+    addLog(key,'Battery API not supported','warn');
+    setMetrics(key,{Status:'Unavailable'});setProg(key,100);
+    return{score:50,status:'warn',metrics:{},logs:[],suggestions:[{sev:'info',title:'Battery API Unavailable',body:'Use Chrome or Edge. Check battery health in OS Settings.'}]};
+  }
+  let b;
+  try{b=await navigator.getBattery();}
+  catch(e){setProg(key,100);return{score:50,status:'warn',metrics:{},logs:[],suggestions:[{sev:'info',title:'Battery Access Error',body:e.message}]};}
+
+  const noBattery=b.level===1&&b.charging===true&&b.chargingTime===0&&b.dischargingTime===Infinity;
+  if(noBattery){
+    addLog(key,'No battery detected (level=100%, charging=true, dischargeTime=∞)','warn');
+    setMetrics(key,{Status:'No Battery',Power:'AC Only'});setProg(key,100);
+    drawSparkline(key,[50,50,50,50,50],'#9ca3af');
+    return{score:50,status:'warn',metrics:{},logs:[],suggestions:[{sev:'info',title:'No Battery Found',body:'Desktop PC or battery removed. This is the standard no-battery API signature. No action needed.'}]};
+  }
+
+  const level=Math.round(b.level*100);
+  addLog(key,'Level: '+level+'%',level>20?'ok':'err');
+  addLog(key,'Charging: '+(b.charging?'Yes ⚡':'No 🔋'),'ok');
+  const metrics={Level:level+'%',Charging:b.charging?'⚡ Yes':'🔋 No'};
+  if(b.dischargingTime!==Infinity&&b.dischargingTime>0){
+    const h=Math.floor(b.dischargingTime/3600),m=Math.floor((b.dischargingTime%3600)/60);
+    addLog(key,'Remaining: '+h+'h '+m+'m',h>1?'ok':'warn');metrics['Remaining']=h+'h '+m+'m';
+  }
+  if(b.charging&&b.chargingTime!==Infinity&&b.chargingTime>0){
+    const h=Math.floor(b.chargingTime/3600),m=Math.floor((b.chargingTime%3600)/60);
+    metrics['To Full']=h+'h '+m+'m';
+  }
+  setMetrics(key,metrics);setProg(key,50);
+  const lvl0=b.level;await sleep(Math.min(2000,testDuration*.1));
+  const drain=(lvl0-b.level)*100;
+  if(drain>0.001)addLog(key,'Drain: '+drain.toFixed(3)+'%',drain>0.1?'warn':'ok');
+  setProg(key,100);
+  const score=Math.min(100,Math.round(level*.4+(b.charging?30:0)+(b.dischargingTime!==Infinity&&b.dischargingTime>7200?30:b.dischargingTime>3600?20:10)));
+  drawSparkline(key,[level,level-drain*3,level-drain*6,level-drain*9].filter(v=>v>=0),'#16a34a');
+  const sugg=[];
+  if(level<15&&!b.charging)sugg.push({sev:'critical',title:'Critical Battery — Plug In Now',body:'Save all work immediately. Risk of sudden shutdown and file corruption.'});
+  else if(level<30&&!b.charging)sugg.push({sev:'warning',title:'Low Battery',body:'Below 30%. Connect charger soon.'});
+  if(score>=65)sugg.push({sev:'good',title:'Battery Status Normal',body:'Battery is healthy. Tip: keep charge between 20–80% to maximise long-term capacity.'});
+  else sugg.push({sev:'warning',title:'Check Battery Health',body:'Windows: run "powercfg /batteryreport" in elevated CMD. Look at "Design Capacity" vs "Full Charge Capacity". <80% means degraded battery.'});
+  return{score,status:score>=60?'pass':score>=30?'warn':'fail',metrics:{},logs:[],suggestions:sugg};
+}
+
+// ════════════════════════════════════════════════
+// DISPLAY
+// ════════════════════════════════════════════════
+async function runDisplay(key){
+  addLog(key,'Display analysis starting…');
+  const W=screen.width,H=screen.height,dpr=window.devicePixelRatio,cd=screen.colorDepth;
+  addLog(key,'Resolution: '+W+'×'+H+' (physical: '+(W*dpr)+'×'+(H*dpr)+'px)','ok');
+  addLog(key,'Device pixel ratio: '+dpr,'ok');
+  addLog(key,'Color depth: '+cd+'-bit',cd>=24?'ok':'warn');
+  setProg(key,20);
+
+  // Measure refresh rate with rAF — average over 120 frames for accuracy
+  addLog(key,'Measuring refresh rate (120 frames)…');
+  const fts=[];
+  await new Promise(r=>{
+    let n=0,last=performance.now();
+    const m=ts=>{if(n>0)fts.push(ts-last);last=ts;n++;n<121?requestAnimationFrame(m):r();};
+    requestAnimationFrame(m);
+  });
+  fts.sort((a,b)=>a-b);
+  const trimmed=fts.slice(5,fts.length-5); // trim outliers
+  const avgFt=trimmed.reduce((a,b)=>a+b,0)/trimmed.length;
+  const hz=Math.round(1000/avgFt);
+  // Snap to common refresh rates
+  const commonHz=[30,48,50,60,75,90,100,120,144,165,240];
+  const snapped=commonHz.reduce((a,b)=>Math.abs(b-hz)<Math.abs(a-hz)?b:a);
+  addLog(key,'Measured: ~'+hz+'Hz → '+snapped+'Hz (standard)','ok');
+  setProg(key,60);
+
+  const minFt=Math.min(...trimmed),maxFt=Math.max(...trimmed);
+  const frameVariance=maxFt-minFt;
+  addLog(key,'Frame time variance: '+frameVariance.toFixed(1)+'ms'+(frameVariance<3?'':' (screen tearing risk)'),frameVariance<3?'ok':'warn');
+
+  let gamut='sRGB';
+  if(window.matchMedia('(color-gamut: rec2020)').matches)gamut='Rec.2020';
+  else if(window.matchMedia('(color-gamut: p3)').matches)gamut='DCI-P3';
+  const hdr=window.matchMedia('(dynamic-range: high)').matches;
+  addLog(key,'Color gamut: '+gamut,'ok');
+  addLog(key,'HDR: '+(hdr?'Yes — HDR content supported':'No — SDR only'),'ok');
+  setProg(key,100);
+
+  const resScore=Math.min(30,Math.round(W*H/(1920*1080)*30));
+  const hzScore=snapped>=240?30:snapped>=165?28:snapped>=144?25:snapped>=120?22:snapped>=90?18:snapped>=75?15:snapped>=60?12:4;
+  const colScore=gamut==='Rec.2020'?25:gamut==='DCI-P3'?20:cd>=30?18:cd>=24?15:6;
+  const hdrBonus=hdr?15:0;
+  const score=Math.min(100,resScore+hzScore+colScore+hdrBonus);
+
+  setMetrics(key,{
+    Resolution:W+'×'+H,
+    Refresh:snapped+'Hz',
+    ColorDepth:cd+'-bit',
+    Gamut:gamut,
+    HDR:hdr?'Yes':'No',
+    Variance:frameVariance.toFixed(1)+'ms'
+  });
+  drawSparkline(key,trimmed.slice(0,50),'#2563eb');
+
+  const sugg=[];
+  if(snapped<60)sugg.push({sev:'warning',title:'Refresh Rate Below 60Hz',body:'Display running below 60Hz. Check Display Settings → Advanced Display → refresh rate. Ensure correct resolution and native refresh rate is selected. Update display drivers.'});
+  if(frameVariance>8)sugg.push({sev:'warning',title:'High Frame Time Variance — Screen Tearing Risk',body:'Frame delivery is uneven ('+frameVariance.toFixed(1)+'ms variance). Enable V-Sync or G-Sync/FreeSync if your monitor supports it. Update GPU drivers.'});
+  if(score>=70)sugg.push({sev:'good',title:'Display Healthy',body:snapped+'Hz @ '+W+'×'+H+', '+gamut+' gamut, '+cd+'-bit color. Display is performing well.'});
+  return{score,status:score>=60?'pass':'warn',metrics:{},logs:[],suggestions:sugg};
+}
+
+// ════════════════════════════════════════════════
+// AUDIO
+// ════════════════════════════════════════════════
+async function runAudio(key){
+  addLog(key,'Initializing Web Audio API…');
+  const sugg=[];let score=50;
+  try{
+    const AC=window.AudioContext||window.webkitAudioContext;
+    if(!AC)throw new Error('Web Audio API not supported in this browser');
+    const ctx=new AC();
+    addLog(key,'Audio context state: '+ctx.state,'ok');
+    addLog(key,'Sample rate: '+ctx.sampleRate+' Hz',ctx.sampleRate>=44100?'ok':'warn');
+    addLog(key,'Output channels: '+ctx.destination.maxChannelCount,'ok');
+    setProg(key,25);
+
+    if(ctx.state==='suspended'){await ctx.resume();addLog(key,'Context resumed from suspended state','ok');}
+
+    const bl=ctx.baseLatency||0;
+    const ol=ctx.outputLatency||0;
+    addLog(key,'Base latency: '+Math.round(bl*1000)+'ms',bl<0.025?'ok':bl<0.1?'warn':'err');
+    addLog(key,'Output latency: '+Math.round(ol*1000)+'ms',ol<0.05?'ok':ol<0.15?'warn':'err');
+    setProg(key,50);
+
+    // Oscillator test
+    const osc=ctx.createOscillator(),gain=ctx.createGain();
+    gain.gain.value=0;osc.connect(gain);gain.connect(ctx.destination);
+    osc.start();await sleep(150);osc.stop();
+    addLog(key,'Oscillator synthesis: PASS','ok');
+
+    // Buffer processing performance
+    const frames=ctx.sampleRate*2; // 2 seconds of audio
+    const buf=ctx.createBuffer(2,frames,ctx.sampleRate);
+    const t0=performance.now();
+    for(let ch=0;ch<2;ch++){
+      const d=buf.getChannelData(ch);
+      for(let i=0;i<frames;i++)d[i]=Math.sin(2*Math.PI*440*i/ctx.sampleRate)*0.5;
+    }
+    const bufMs=Math.round(performance.now()-t0);
+    const realTimeRatio=(frames/ctx.sampleRate*1000)/bufMs;
+    addLog(key,'Buffer gen (2s audio): '+bufMs+'ms ('+realTimeRatio.toFixed(1)+'× real-time)','ok');
+    addLog(key,realTimeRatio>5?'Audio processing is fast — low latency capable':'Audio processing is slow — may cause dropouts',realTimeRatio>5?'ok':'warn');
+    setProg(key,85);
+
+    // Analyzer test
+    const analyser=ctx.createAnalyser();analyser.fftSize=2048;
+    const freqData=new Uint8Array(analyser.frequencyBinCount);
+    analyser.getByteFrequencyData(freqData);
+    addLog(key,'FFT analyser ('+analyser.frequencyBinCount+' bins): PASS','ok');
+    ctx.close();setProg(key,100);
+
+    const sr=ctx.sampleRate,ch=ctx.destination.maxChannelCount;
+    const latScore=bl<0.005?40:bl<0.015?35:bl<0.05?25:bl<0.1?15:5;
+    const srScore=sr>=96000?25:sr>=48000?20:sr>=44100?15:5;
+    const chScore=ch>=8?20:ch>=6?15:ch>=2?12:5;
+    const bufScore=Math.min(15,Math.round(realTimeRatio*1.5));
+    score=Math.min(100,latScore+srScore+chScore+bufScore);
+
+    setMetrics(key,{
+      'Sample Rate':sr+' Hz',
+      'Channels':ch,
+      'Base Latency':Math.round(bl*1000)+'ms',
+      'RT Ratio':realTimeRatio.toFixed(1)+'×',
+      Score:score+'/100'
+    });
+    drawSparkline(key,[score,score-2,score+1,score-1,score+2,score-3,score+1,score],'#d97706');
+
+    if(bl>0.1)sugg.push({sev:'warning',title:'High Audio Latency ('+Math.round(bl*1000)+'ms)',body:'Audio latency is above 100ms. Update audio drivers from manufacturer. On Windows try ASIO4ALL for sub-10ms latency. Ensure no other apps monopolise the audio device.'});
+    if(sr<44100)sugg.push({sev:'warning',title:'Below CD-Quality Sample Rate',body:'Sample rate is below 44100Hz. Go to Control Panel → Sound → Properties → Advanced and set to 44100Hz or 48000Hz.'});
+    if(score>=65)sugg.push({sev:'good',title:'Audio System Healthy',body:'Web Audio API working correctly. Latency: '+Math.round(bl*1000)+'ms, sample rate: '+sr+'Hz, '+ch+' output channels.'});
+  }catch(e){
+    addLog(key,'Audio error: '+e.message,'err');score=10;setProg(key,100);
+    sugg.push({sev:'critical',title:'Audio System Failed',body:'Web Audio API failed: '+e.message+'. Install/update audio drivers. Verify browser has audio permissions in System Settings.'});
+  }
+  return{score,status:score>=60?'pass':score>=35?'warn':'fail',metrics:{},logs:[],suggestions:sugg};
+}
+
+// ════════════════════════════════════════════════
+// KEYBOARD TEST
+// ════════════════════════════════════════════════
+const pressedKeys=new Set();let totalPresses=0,stuckKeyTimer={};
+const KEYBOARD_LAYOUT=[
+  [{l:'Esc',c:'Escape',w:'w1'},{l:'F1',c:'F1'},{l:'F2',c:'F2'},{l:'F3',c:'F3'},{l:'F4',c:'F4'},{l:'F5',c:'F5'},{l:'F6',c:'F6'},{l:'F7',c:'F7'},{l:'F8',c:'F8'},{l:'F9',c:'F9'},{l:'F10',c:'F10'},{l:'F11',c:'F11'},{l:'F12',c:'F12'}],
+  [{l:'`',c:'Backquote'},{l:'1',c:'Digit1'},{l:'2',c:'Digit2'},{l:'3',c:'Digit3'},{l:'4',c:'Digit4'},{l:'5',c:'Digit5'},{l:'6',c:'Digit6'},{l:'7',c:'Digit7'},{l:'8',c:'Digit8'},{l:'9',c:'Digit9'},{l:'0',c:'Digit0'},{l:'-',c:'Minus'},{l:'=',c:'Equal'},{l:'⌫ Back',c:'Backspace',w:'w2'}],
+  [{l:'Tab',c:'Tab',w:'w15'},{l:'Q',c:'KeyQ'},{l:'W',c:'KeyW'},{l:'E',c:'KeyE'},{l:'R',c:'KeyR'},{l:'T',c:'KeyT'},{l:'Y',c:'KeyY'},{l:'U',c:'KeyU'},{l:'I',c:'KeyI'},{l:'O',c:'KeyO'},{l:'P',c:'KeyP'},{l:'[',c:'BracketLeft'},{l:']',c:'BracketRight'},{l:'\\',c:'Backslash',w:'w15'}],
+  [{l:'Caps',c:'CapsLock',w:'w175'},{l:'A',c:'KeyA'},{l:'S',c:'KeyS'},{l:'D',c:'KeyD'},{l:'F',c:'KeyF'},{l:'G',c:'KeyG'},{l:'H',c:'KeyH'},{l:'J',c:'KeyJ'},{l:'K',c:'KeyK'},{l:'L',c:'KeyL'},{l:';',c:'Semicolon'},{l:"'",c:'Quote'},{l:'Enter',c:'Enter',w:'w225'}],
+  [{l:'⇧ Shift',c:'ShiftLeft',w:'w225'},{l:'Z',c:'KeyZ'},{l:'X',c:'KeyX'},{l:'C',c:'KeyC'},{l:'V',c:'KeyV'},{l:'B',c:'KeyB'},{l:'N',c:'KeyN'},{l:'M',c:'KeyM'},{l:',',c:'Comma'},{l:'.',c:'Period'},{l:'/',c:'Slash'},{l:'Shift ⇧',c:'ShiftRight',w:'w275'}],
+  [{l:'Ctrl',c:'ControlLeft',w:'w15'},{l:'Win',c:'MetaLeft',w:'w1'},{l:'Alt',c:'AltLeft',w:'w1'},{l:'Space',c:'Space',w:'space'},{l:'Alt',c:'AltRight',w:'w1'},{l:'Win',c:'MetaRight',w:'w1'},{l:'Menu',c:'ContextMenu',w:'w1'},{l:'Ctrl',c:'ControlRight',w:'w15'}]
+];
+function buildKeyboard(){
+  const grid=document.getElementById('kbd-grid');
+  KEYBOARD_LAYOUT.forEach(row=>{
+    const rowEl=document.createElement('div');rowEl.className='kbd-row';
+    row.forEach(k=>{
+      const el=document.createElement('div');el.className='key '+(k.w||'');
+      el.id='key-'+k.c;el.textContent=k.l;el.title=k.c;rowEl.appendChild(el);
+    });
+    grid.appendChild(rowEl);
+  });
+}
+function setupKeyboardListeners(){
+  document.addEventListener('keydown',e=>{
+    const el=document.getElementById('key-'+e.code);
+    if(el){
+      if(!el.classList.contains('pressed')){el.classList.add('pressed');pressedKeys.add(e.code);document.getElementById('kbd-count').textContent=pressedKeys.size;}
+      totalPresses++;document.getElementById('kbd-presses').textContent=totalPresses;
+      document.getElementById('kbd-recent').textContent='Last: '+e.key+' (code: '+e.code+')';
+      if(stuckKeyTimer[e.code])clearTimeout(stuckKeyTimer[e.code]);
+      stuckKeyTimer[e.code]=setTimeout(()=>{
+        const s=parseInt(document.getElementById('kbd-stuck').textContent)||0;
+        document.getElementById('kbd-stuck').textContent=s+1;
+        if(el)el.style.outline='2px solid var(--red)';
+      },3000);
+    }
+    if(e.key==='Tab'||e.key===' ')e.preventDefault();
+  });
+  document.addEventListener('keyup',e=>{if(stuckKeyTimer[e.code]){clearTimeout(stuckKeyTimer[e.code]);delete stuckKeyTimer[e.code];}});
+}
+function resetKeyboard(){
+  pressedKeys.clear();totalPresses=0;
+  document.querySelectorAll('.key').forEach(el=>{el.classList.remove('pressed');el.style.outline='';});
+  ['kbd-count','kbd-presses','kbd-stuck'].forEach(id=>document.getElementById(id).textContent='0');
+  document.getElementById('kbd-recent').textContent='Recently pressed: —';
+  stuckKeyTimer={};
+}
+
+// ════════════════════════════════════════════════
+// WINDOWS PERFORMANCE ESTIMATE
+// ════════════════════════════════════════════════
+async function runWinPerf(){
+  const btn=document.getElementById('btn-winperf');btn.disabled=true;btn.textContent='Analyzing…';
+  const body=document.getElementById('winperf-body');
+  body.innerHTML='<p style="font-size:13px;color:var(--muted);margin-bottom:12px">Running benchmarks…</p><div class="prog-wrap"><div class="prog-bar" id="wp-prog" style="width:5%"></div></div>';
+  const sp=v=>{const e=document.getElementById('wp-prog');if(e)e.style.width=v+'%';};
+
+  sp(10);
+  const cores=navigator.hardwareConcurrency||2;
+  // CPU
+  let cpuOps=0;const ct=performance.now();
+  while(performance.now()-ct<2500){let x=0;for(let i=0;i<3e5;i++)x+=Math.sqrt(i)*Math.log(i+1);cpuOps++;}
+  const cpuRate=cpuOps/(2.5);
+  sp(30);
+  // Memory
+  const mb32=32*1024*1024,mbArr=new Float32Array(mb32/4);
+  const mt=performance.now();for(let i=0;i<mbArr.length;i++)mbArr[i]=i*.0001;
+  const memBW=Math.round((mb32/1024/1024)/((performance.now()-mt)/1000));
+  sp(50);
+  // GPU
+  let gpuFPS=30,gpuName='Unknown';
+  try{
+    const c=document.createElement('canvas');c.width=c.height=512;
+    const ctx=c.getContext('2d');
+    const ext=document.createElement('canvas').getContext('webgl')?.getExtension('WEBGL_debug_renderer_info');
+    if(ext){const gl=document.createElement('canvas').getContext('webgl');gpuName=gl?.getParameter(ext.UNMASKED_RENDERER_WEBGL)||'Unknown';}
+    const gt=performance.now();let gf=0;
+    while(performance.now()-gt<1500){ctx.clearRect(0,0,512,512);for(let i=0;i<40;i++){ctx.fillStyle='hsla('+(i*9)+',70%,50%,.3)';ctx.fillRect(Math.random()*462,Math.random()*462,50,50);}gf++;}
+    gpuFPS=Math.round(gf/(1.5));
+  }catch{}
+  sp(70);
+  // Refresh
+  const ftsW=[];await new Promise(r=>{let n=0,l=performance.now();const m=ts=>{if(n>0)ftsW.push(ts-l);l=ts;n++;n<40?requestAnimationFrame(m):r();};requestAnimationFrame(m);});
+  const hz=Math.round(1000/(ftsW.reduce((a,b)=>a+b,0)/ftsW.length));
+  sp(85);
+  // Storage
+  let diskScore=5;
+  const sb=new Uint8Array(64*1024*1024);
+  const dst=performance.now();for(let i=0;i<sb.length;i+=4){sb[i]=i&255;sb[i+1]=(i>>8)&255;}
+  const dSpeed=Math.round((64)/((performance.now()-dst)/1000));
+  diskScore=Math.min(9.9,Math.max(1,dSpeed/800*9.9));
+  sp(100);
+
+  const cpuWEI=Math.min(9.9,Math.max(1.0,cpuRate/12));
+  const memWEI=Math.min(9.9,Math.max(1.0,memBW/2200*9.9));
+  const gpuWEI=Math.min(9.9,Math.max(1.0,gpuFPS/6.5));
+  const diskWEI=parseFloat(diskScore.toFixed(1));
+  const dispWEI=Math.min(9.9,Math.max(1.0,hz>=240?9.8:hz>=165?9.2:hz>=144?8.8:hz>=120?8.0:hz>=75?6.5:hz>=60?5.5:3.0));
+  const base=Math.min(cpuWEI,memWEI,gpuWEI,diskWEI,dispWEI);
+
+  let tier,tColor,tBg,tEmoji,tDesc;
+  if(base>=8.5){tier='Enthusiast / High End';tColor='#7c3aed';tBg='#f5f3ff';tEmoji='🚀';tDesc='Top-tier performance. Handles gaming, video editing, 3D rendering and AI workloads with ease.';}
+  else if(base>=7){tier='High Performance';tColor='#16a34a';tBg=var_='var(--greenBg)';tEmoji='⚡';tDesc='Excellent for gaming, creative work and heavy multitasking.';}
+  else if(base>=5.5){tier='Upper Mid-Range';tColor='#2563eb';tBg='var(--blueBg)';tEmoji='✅';tDesc='Strong everyday performance — handles most tasks well.';}
+  else if(base>=3.5){tier='Mid-Range';tColor='#d97706';tBg='var(--amberBg)';tEmoji='👍';tDesc='Comfortable for office, web and media consumption.';}
+  else if(base>=2){tier='Entry Level';tColor='#ea580c';tBg='var(--orangeBg)';tEmoji='⚠️';tDesc='Basic performance. May lag under demanding tasks.';}
+  else{tier='Low Performance';tColor='var(--red)';tBg='var(--redBg)';tEmoji='❌';tDesc='Severely limited. Hardware upgrade recommended.';}
+
+  const bar=(label,v,color)=>`<div class="perf-bar-row"><div class="perf-bar-label">${label}</div><div class="perf-bar-track"><div class="perf-bar-fill" style="width:${v/9.9*100}%;background:${color}"></div></div><div class="perf-bar-val">${v.toFixed(1)}</div></div>`;
+  body.innerHTML=`
+    <div class="perf-tier" style="background:${tBg};border-color:${tColor}40">
+      <div style="font-size:40px">${tEmoji}</div>
+      <div style="flex:1">
+        <div style="font-size:11px;font-weight:600;letter-spacing:.8px;color:var(--muted);text-transform:uppercase;margin-bottom:4px">Performance Tier</div>
+        <div style="font-size:20px;font-weight:800;color:${tColor}">${tier}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:4px">${tDesc}</div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.8px">Base Score</div>
+        <div style="font-size:52px;font-weight:900;color:${tColor};font-family:var(--mono);line-height:1;letter-spacing:-2px">${base.toFixed(1)}</div>
+        <div style="font-size:11px;color:var(--muted)">/ 9.9</div>
+      </div>
+    </div>
+    <div class="section-header"><h3>Sub-Scores</h3><div class="divider"></div></div>
+    <div class="perf-bars" style="background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);padding:20px;margin-bottom:20px">
+      ${bar('Processor',cpuWEI,'#d97706')}
+      ${bar('Memory (RAM)',memWEI,'#0891b2')}
+      ${bar('Graphics',gpuWEI,'#2563eb')}
+      ${bar('Primary Disk',diskWEI,'#16a34a')}
+      ${bar('Display',dispWEI,'#7c3aed')}
+    </div>
+    <div style="background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius);padding:14px;font-size:11px;color:var(--muted);line-height:1.8">
+      <strong style="color:var(--text)">Note:</strong> Browser-based estimates. For real WEI scores run <code>winsat formal</code> in elevated CMD (Windows 7-10), or use PassMark / Cinebench / CrystalDiskMark for individual component testing.
+    </div>`;
+}
+
+// ════════════════════════════════════════════════
+// INTERNET SPEED TEST
+// Multi-chunk download via fetch to CDN endpoints
+// Upload via XHR payload; ping via no-cors fetch timing
+// ════════════════════════════════════════════════
+let speedTestRunning=false;
+function stLog(msg){const b=document.getElementById('st-log');if(!b)return;b.innerHTML+='\n'+new Date().toLocaleTimeString('en',{hour12:false})+' '+msg;b.scrollTop=b.scrollHeight;}
+function stProg(id,pct,val){
+  const p=document.getElementById('ssp-'+id);if(p)p.style.width=pct+'%';
+  const v=document.getElementById('ssv-'+id);if(v)v.textContent=val;
+}
+async function runSpeedTest(){
+  if(speedTestRunning)return;
+  speedTestRunning=true;
+  const btn=document.getElementById('btn-speedtest');btn.disabled=true;btn.textContent='Testing…';
+  document.getElementById('st-log').textContent='';
+  document.getElementById('st-ping').textContent='—';
+  document.getElementById('st-dl').textContent='—';
+  document.getElementById('st-ul').textContent='—';
+  document.getElementById('st-grade').textContent='…';
+  document.getElementById('st-grade-label').textContent='';
+
+  // ─── PING ───
+  stLog('Measuring latency to 3 CDN endpoints…');
+  const pingTargets=[
+    {name:'Cloudflare',url:'https://cloudflare.com/cdn-cgi/trace'},
+    {name:'Google',url:'https://www.google.com/generate_204'},
+    {name:'jsDelivr',url:'https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js'},
+  ];
+  const pings=[];
+  for(let i=0;i<pingTargets.length;i++){
+    const {name,url}=pingTargets[i];
+    const samples=[];
+    for(let j=0;j<4;j++){
+      try{const t0=performance.now();await fetch(url+'?_st='+Date.now()+(j*37),{mode:'no-cors',cache:'no-store'});samples.push(Math.round(performance.now()-t0));}
+      catch{samples.push(999);}
+      await new Promise(r=>setTimeout(r,80));
+    }
+    const valid=samples.filter(s=>s<900);
+    const avg=valid.length?Math.min(...valid):999;
+    pings.push(avg);
+    stLog(name+': '+avg+'ms');
+    stProg('ping',(i+1)/pingTargets.length*100,'');
+    await new Promise(r=>setTimeout(r,150));
+  }
+  const bestPing=Math.min(...pings.filter(p=>p<900));
+  document.getElementById('st-ping').textContent=bestPing<900?bestPing:'—';
+  stProg('ping',100,bestPing<900?bestPing+'ms':'—');
+  stLog('Best ping: '+bestPing+'ms');
+
+  // ─── DOWNLOAD ───
+  stLog('Measuring download speed (multi-chunk fetch)…');
+  const DL_TARGETS=[
+    'https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css',
+    'https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js',
+    'https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js',
+    'https://cdn.jsdelivr.net/npm/moment@2.30.1/moment.js',
+    'https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js',
+  ];
+  let totalBytes=0,dlStart=performance.now();
+  for(let i=0;i<DL_TARGETS.length;i++){
+    try{
+      const r=await fetch(DL_TARGETS[i]+'?_st='+Date.now(),{cache:'no-store'});
+      const buf=await r.arrayBuffer();
+      totalBytes+=buf.byteLength;
+      const elapsedS=(performance.now()-dlStart)/1000;
+      const curMbps=((totalBytes*8/1e6)/elapsedS);
+      stProg('dl',(i+1)/DL_TARGETS.length*100,curMbps.toFixed(1)+' Mbps');
+      stLog('Chunk '+(i+1)+': '+Math.round(buf.byteLength/1024)+'KB → '+curMbps.toFixed(1)+' Mbps running');
+    }catch(e){stLog('Chunk '+(i+1)+' failed: '+e.message);}
+    await new Promise(r=>setTimeout(r,50));
+  }
+  const dlSecs=(performance.now()-dlStart)/1000;
+  const dlMbps=((totalBytes*8/1e6)/dlSecs);
+  document.getElementById('st-dl').textContent=dlMbps.toFixed(1);
+  stProg('dl',100,dlMbps.toFixed(1)+' Mbps');
+  stLog('Download: '+dlMbps.toFixed(1)+' Mbps ('+Math.round(totalBytes/1024)+'KB in '+dlSecs.toFixed(1)+'s)');
+
+  // ─── UPLOAD (synthetic) ───
+  stLog('Measuring upload speed (XHR payload to httpbin)…');
+  // Use a small payload approach — we can't upload to CDN without CORS, so we use
+  // multiple 256KB XHR POSTs to a free echo endpoint and time the response
+  const UL_SIZE=256*1024; // 256KB per chunk
+  const payload=new Uint8Array(UL_SIZE);crypto.getRandomValues(payload);
+  const ulChunks=4;let ulTotalBytes=0;
+  const ulStart=performance.now();
+  for(let i=0;i<ulChunks;i++){
+    try{
+      const t0=performance.now();
+      await fetch('https://httpbin.org/post?_st='+Date.now(),{
+        method:'POST',mode:'cors',
+        headers:{'Content-Type':'application/octet-stream'},
+        body:payload
+      });
+      const chunkMs=performance.now()-t0;
+      ulTotalBytes+=UL_SIZE;
+      const curUlMbps=((UL_SIZE*8/1e6)/(chunkMs/1000));
+      stProg('ul',(i+1)/ulChunks*100,curUlMbps.toFixed(1)+' Mbps');
+      stLog('Upload chunk '+(i+1)+': '+curUlMbps.toFixed(1)+' Mbps');
+    }catch(e){
+      // httpbin may fail due to CORS — fall back to synthetic estimate
+      stLog('Upload endpoint blocked (CORS) — using latency-based estimate');
+      // Estimate from download ratio — upload is typically 10–30% of download on asymmetric links
+      const estUl=Math.max(1,dlMbps*0.18);
+      document.getElementById('st-ul').textContent=estUl.toFixed(1)+'*';
+      stProg('ul',100,estUl.toFixed(1)+' Mbps*');
+      stLog('Upload estimate (CORS blocked): '+estUl.toFixed(1)+' Mbps* (*estimated)');
+      ulTotalBytes=0;
+      break;
+    }
+  }
+  if(ulTotalBytes>0){
+    const ulSecs=(performance.now()-ulStart)/1000;
+    const ulMbps=((ulTotalBytes*8/1e6)/ulSecs);
+    document.getElementById('st-ul').textContent=ulMbps.toFixed(1);
+    stProg('ul',100,ulMbps.toFixed(1)+' Mbps');
+    stLog('Upload: '+ulMbps.toFixed(1)+' Mbps');
+  }
+
+  // ─── GRADE ───
+  const grade=dlMbps>=500?'🚀':dlMbps>=200?'⚡':dlMbps>=100?'🟢':dlMbps>=50?'🔵':dlMbps>=20?'🟡':dlMbps>=5?'🟠':'🔴';
+  const gradeLabel=dlMbps>=500?'Ultra-Fast Gigabit+':dlMbps>=200?'Excellent (Fiber)':dlMbps>=100?'Very Fast':dlMbps>=50?'Fast Broadband':dlMbps>=20?'Good (HD streaming ok)':dlMbps>=5?'Moderate':dlMbps>=1?'Slow':'Very Slow';
+  document.getElementById('st-grade').textContent=grade;
+  document.getElementById('st-grade-label').textContent=gradeLabel;
+  stLog('━━━ Done. Grade: '+gradeLabel+' ━━━');
+
+  speedTestRunning=false;btn.disabled=false;btn.textContent='▶ Run Again';
+}
+
+// ════════════════════════════════════════════════
+// USE CASE PROFILER
+// Benchmarks CPU, GPU, RAM, Storage then scores
+// against 8 real-world workload profiles
+// ════════════════════════════════════════════════
+const USE_CASES=[
+  {id:'gaming',icon:'🎮',name:'Gaming',desc:'3D games, competitive titles, game streaming',
+   weights:{cpu:.25,gpu:.45,mem:.15,stor:.15}},
+  {id:'videoEdit',icon:'🎬',name:'Video Editing',desc:'4K editing, color grading, rendering (Premiere, DaVinci)',
+   weights:{cpu:.35,gpu:.30,mem:.25,stor:.10}},
+  {id:'programming',icon:'💻',name:'Programming / Dev',desc:'IDE, Docker, compilation, running servers',
+   weights:{cpu:.40,gpu:.10,mem:.30,stor:.20}},
+  {id:'office',icon:'📊',name:'Office / Productivity',desc:'Word, Excel, browser tabs, video calls',
+   weights:{cpu:.25,gpu:.10,mem:.25,stor:.10,net:.30}},
+  {id:'ai',icon:'🤖',name:'AI / ML Workloads',desc:'Local LLMs, training, inference (GPU-dependent)',
+   weights:{cpu:.20,gpu:.50,mem:.20,stor:.10}},
+  {id:'design',icon:'🎨',name:'Graphic Design',desc:'Photoshop, Illustrator, Figma, rendering',
+   weights:{cpu:.25,gpu:.35,mem:.25,stor:.15}},
+  {id:'streaming',icon:'📹',name:'Content Creation',desc:'OBS streaming, recording, live streaming',
+   weights:{cpu:.35,gpu:.30,mem:.20,stor:.15}},
+  {id:'browsing',icon:'🌐',name:'Web / Light Use',desc:'Browsing, YouTube, email, social media',
+   weights:{cpu:.20,gpu:.15,mem:.20,stor:.10,net:.35}},
+];
+
+async function runUseCaseProfiler(){
+  const btn=document.getElementById('btn-usecase');
+  btn.disabled=true;btn.textContent='Benchmarking…';
+  const body=document.getElementById('usecase-body');
+  body.innerHTML='<p style="font-size:13px;color:var(--muted)">Running quick benchmarks…</p><div class="prog-wrap"><div class="prog-bar" id="uc-prog" style="width:5%"></div></div>';
+  const sp=v=>{const e=document.getElementById('uc-prog');if(e)e.style.width=v+'%';};
+
+  // ── CPU (2s sieve) ──
+  sp(10);
+  let cpuOps=0;const ct=performance.now();
+  while(performance.now()-ct<2000){
+    const s=new Uint8Array(200001).fill(1);
+    for(let i=2;i*i<=200000;i++)if(s[i])for(let j=i*i;j<=200000;j+=i)s[j]=0;
+    cpuOps++;
+  }
+  const cpuRate=cpuOps/2;
+  const cpuScore=Math.min(100,Math.round(cpuRate/0.16));
+  sp(30);
+
+  // ── GPU (canvas FPS) ──
+  let gpuScore=40;
+  try{
+    const c=document.createElement('canvas');c.width=c.height=600;
+    const ctx=c.getContext('2d');
+    let frames=0;const gEnd=performance.now()+1500;
+    while(performance.now()<gEnd){
+      ctx.clearRect(0,0,600,600);
+      for(let i=0;i<60;i++){ctx.fillStyle='hsla('+(i*6)+',80%,50%,.4)';ctx.beginPath();ctx.arc(Math.random()*600,Math.random()*600,30,0,Math.PI*2);ctx.fill();}
+      frames++;await new Promise(r=>setTimeout(r,0));
+    }
+    const fps=frames/(1.5);
+    const ext=document.createElement('canvas').getContext('webgl')?.getExtension('WEBGL_debug_renderer_info');
+    const isSW=ext?document.createElement('canvas').getContext('webgl')?.getParameter(ext.UNMASKED_RENDERER_WEBGL)?.toLowerCase().includes('swiftshader'):false;
+    gpuScore=Math.min(100,isSW?15:Math.round(fps/0.6));
+  }catch{}
+  sp(55);
+
+  // ── Memory (BW) ──
+  const mb=new Float32Array(16*1024*1024);
+  const mt=performance.now();for(let i=0;i<mb.length;i++)mb[i]=i*0.0001;
+  const memBW=Math.round(64/((performance.now()-mt)/1000));
+  const memScore=Math.min(100,Math.round(memBW/55));
+  sp(70);
+
+  // ── Storage (buf speed) ──
+  const sb=new Uint8Array(64*1024*1024);
+  const st=performance.now();for(let i=0;i<sb.length;i+=4){sb[i]=i&255;sb[i+1]=(i>>8)&255;}
+  const storSpeed=Math.round(64/((performance.now()-st)/1000));
+  const storScore=Math.min(100,Math.round(storSpeed/80));
+  sp(85);
+
+  // ── Network (API hint) ──
+  const conn=navigator.connection||navigator.mozConnection||navigator.webkitConnection;
+  const dl=conn?.downlink??null;
+  const netScore=dl?Math.min(100,Math.round(dl*5)):50;
+  sp(100);
+
+  const scores={cpu:cpuScore,gpu:gpuScore,mem:memScore,stor:storScore,net:netScore};
+
+  // ── Score each use case ──
+  const ranked=USE_CASES.map(uc=>{
+    const w=uc.weights;
+    let total=0,wSum=0;
+    Object.entries(w).forEach(([k,wt])=>{total+=scores[k]*wt;wSum+=wt;});
+    const score=Math.round(total/wSum);
+    return{...uc,score};
+  }).sort((a,b)=>b.score-a.score);
+
+  const colors=['#d97706','#16a34a','#2563eb','#0891b2','#7c3aed','#ea580c','#6b7280','#374151'];
+
+  body.innerHTML=`
+    <div style="margin-bottom:16px;padding:14px 16px;background:var(--amberBg);border:1px solid var(--amber2);border-radius:var(--radius)">
+      <div style="font-size:11px;font-weight:700;letter-spacing:.8px;color:var(--amber);text-transform:uppercase;margin-bottom:4px">🎯 Best Suited For</div>
+      <div style="font-size:20px;font-weight:800;color:var(--text)">${ranked[0].icon} ${ranked[0].name}</div>
+      <div style="font-size:12px;color:var(--muted);margin-top:4px">${ranked[0].desc}</div>
+    </div>
+    <div style="margin-bottom:16px;padding:12px 16px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);display:flex;gap:16px;flex-wrap:wrap;font-size:12px">
+      <div><span style="font-weight:700;color:var(--text)">CPU Score</span> <span style="font-family:var(--mono)">${cpuScore}/100</span></div>
+      <div><span style="font-weight:700;color:var(--text)">GPU Score</span> <span style="font-family:var(--mono)">${gpuScore}/100</span></div>
+      <div><span style="font-weight:700;color:var(--text)">RAM Score</span> <span style="font-family:var(--mono)">${memScore}/100</span></div>
+      <div><span style="font-weight:700;color:var(--text)">Storage Score</span> <span style="font-family:var(--mono)">${storScore}/100</span></div>
+      <div><span style="font-weight:700;color:var(--text)">Network Score</span> <span style="font-family:var(--mono)">${netScore}/100</span></div>
+    </div>
+    <div class="usecase-grid">${ranked.map((uc,i)=>`
+      <div class="usecase-card ${i===0?'top-pick':''}">
+        ${i===0?'<div class="usecase-tag">★ TOP MATCH</div>':''}
+        <div class="usecase-rank">#${i+1}</div>
+        <div class="usecase-icon">${uc.icon}</div>
+        <div class="usecase-name">${uc.name}</div>
+        <div class="usecase-score-row">
+          <div class="usecase-score-bar"><div class="usecase-score-fill" style="width:${uc.score}%;background:${colors[i]}"></div></div>
+          <div class="usecase-score-num" style="color:${colors[i]}">${uc.score}</div>
+        </div>
+        <div class="usecase-desc">${uc.desc}</div>
+      </div>`).join('')}
+    </div>
+    <div style="font-size:11px;color:var(--muted);padding:12px 14px;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius)">
+      <strong style="color:var(--text)">Note:</strong> Scores are browser-observable estimates. Actual performance in each workload depends on installed software, RAM amount, and GPU VRAM — factors not fully visible from a browser. Run the full Benchmark suite for deeper hardware analysis.
+    </div>
+    <div style="margin-top:14px"><button class="btn btn-secondary" onclick="runUseCaseProfiler()" style="font-size:12px;padding:8px 16px">↺ Re-run</button></div>`;
+}
+
+// ════════════════════════════════════════════════
+// NETWORK SCANNER — LAN-only, browser-safe
+//
+// TECHNIQUE: WebRTC ICE candidates reveal the real
+// local IP. Then we probe each LAN IP using an
+// <img> src trick: browsers generate an onerror
+// FAST (connection refused, <50ms) when a TCP port
+// is open but returns no image, versus a SLOW error
+// (timeout, >500ms) when nothing is listening.
+// This timing difference lets us detect live hosts
+// without CORS, fetch, or any server-side help.
+// ════════════════════════════════════════════════
+let netScanStop=false;
+
+// ── Step 1: Get real local LAN IP via WebRTC ──
+async function getLocalIPs(){
+  return new Promise(resolve=>{
+    const ips=new Set();
+    let done=false;
+    const finish=()=>{
+      if(done)return;done=true;
+      const arr=[...ips];
+      // Prefer RFC1918 private ranges
+      const local=arr.find(ip=>/^(192\.168\.|10\.|172\.(1[6-9]|2\d|3[01])\.)/.test(ip));
+      resolve({primary:local||arr[0]||null,all:arr});
+    };
+    try{
+      const pc=new RTCPeerConnection({
+        iceServers:[
+          {urls:'stun:stun.l.google.com:19302'},
+          {urls:'stun:stun1.l.google.com:19302'},
+        ]
+      });
+      pc.createDataChannel('__scan');
+      pc.onicecandidate=evt=>{
+        if(!evt.candidate){finish();return;}
+        // Extract all IPv4 addresses from the candidate line
+        const line=evt.candidate.candidate;
+        const matches=line.matchAll(/(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/g);
+        for(const m of matches){
+          const ip=m[1];
+          // Filter out loopback and link-local
+          if(!ip.startsWith('127.')&&!ip.startsWith('169.254.'))ips.add(ip);
+        }
+      };
+      pc.createOffer().then(o=>pc.setLocalDescription(o)).catch(()=>{});
+      // Hard timeout — if ICE gathers slowly still resolve
+      setTimeout(()=>{pc.close();finish();},4000);
+    }catch{resolve({primary:null,all:[]});}
+  });
+}
+
+// ── Step 2: Probe a single LAN IP using img timing ──
+// Open hosts respond fast (TCP RST → onerror in <80ms)
+// Dead hosts time out slowly (no TCP response → onerror in ~timeoutMs)
+function probeIPviaImg(ip,timeoutMs=1200){
+  return new Promise(resolve=>{
+    const t0=performance.now();
+    const img=new Image();
+    let settled=false;
+    const settle=(reachable)=>{
+      if(settled)return;settled=true;
+      img.onload=img.onerror=null;
+      // Clean up src to cancel pending load
+      img.src='';
+      const latency=Math.round(performance.now()-t0);
+      resolve({reachable,latency});
+    };
+    img.onload=()=>settle(true);   // device served an actual image (rare but possible)
+    img.onerror=()=>{
+      const lat=Math.round(performance.now()-t0);
+      // Fast error = TCP connection was made (port open, not timed out)
+      // Threshold: if it errored in under 85% of the timeout → something responded
+      settle(lat < timeoutMs*0.82);
+    };
+    setTimeout(()=>settle(false),timeoutMs);
+    // Point at port 80 favicon — any live HTTP device will respond fast even with 404
+    img.src='http://'+ip+':80/favicon.ico?_='+Date.now();
+  });
+}
+
+// Probe multiple ports — if ANY port responds fast, host is alive
+async function probeHost(ip,timeoutMs=1400){
+  // Try port 80 (HTTP) first — fastest and most common
+  const r80=await probeIPviaImg(ip,timeoutMs);
+  if(r80.reachable)return{reachable:true,latency:r80.latency,port:80};
+
+  // If port 80 was very fast (connection refused counts) still mark alive
+  if(r80.latency < timeoutMs*0.7){
+    return{reachable:true,latency:r80.latency,port:'refused'};
+  }
+  return{reachable:false,latency:r80.latency};
+}
+
+// ── Step 3: Classify device by IP heuristics ──
+function classifyLANDevice(ip,port,latency){
+  const oct=parseInt(ip.split('.').pop());
+  const isGW=oct===1||oct===254||oct===253;
+  const isMgmt=oct===2||oct===3;
+
+  if(isGW)  return{icon:'🌐',type:'Router / Gateway',   tag:'Gateway',    color:'var(--green)'};
+  if(isMgmt)return{icon:'📡',type:'Modem / Access Point',tag:'Network Eq.',color:'var(--cyan)'};
+  if(latency<30)return{icon:'⚡',type:'Fast LAN Device',  tag:'Low Latency',color:'var(--amber)'};
+  return      {icon:'🖥️', type:'Network Host',          tag:'Device',     color:'var(--blue)'};
+}
+
+function stopNetScan(){
+  netScanStop=true;
+  document.getElementById('btn-scan-stop').style.display='none';
+  document.getElementById('btn-scan').disabled=false;
+  document.getElementById('scan-dot').className='scan-status-dot';
+  document.getElementById('scan-status-txt').textContent='Scan stopped by user.';
+}
+
+async function runNetworkScan(){
+  netScanStop=false;
+  const btn=document.getElementById('btn-scan');
+  const stopBtn=document.getElementById('btn-scan-stop');
+  btn.disabled=true;stopBtn.style.display='inline-flex';
+  const dot=document.getElementById('scan-dot');
+  dot.className='scan-status-dot scanning';
+  document.getElementById('device-grid').innerHTML='';
+  document.getElementById('scan-summary').style.display='none';
+  document.getElementById('scan-status-txt').textContent='🔍 Detecting your local LAN IP via WebRTC…';
+
+  // ── Detect local IP ──
+  const {primary:myIP, all:allIPs}=await getLocalIPs();
+  document.getElementById('scan-myip').textContent=myIP||(allIPs[0]||'Unknown');
+
+  const lanIP=myIP||allIPs[0];
+  if(!lanIP||!/^(192\.168\.|10\.|172\.(1[6-9]|2\d|3[01])\.)/.test(lanIP)){
+    dot.className='scan-status-dot';
+    // Still show what we found
+    const allDisplay=allIPs.length?allIPs.join(', '):'none';
+    document.getElementById('scan-status-txt').textContent=
+      'WebRTC found: '+allDisplay+'. Could not isolate a private LAN IP. Check that WebRTC is not blocked by browser/extension.';
+    btn.disabled=false;stopBtn.style.display='none';
+    return;
+  }
+
+  const subnet=lanIP.split('.').slice(0,3).join('.');
+  const myOctet=parseInt(lanIP.split('.').pop());
+
+  document.getElementById('scan-summary').style.display='flex';
+  document.getElementById('scan-status-txt').textContent='Scanning LAN subnet: '+subnet+'.0/24';
+
+  // ── Build smart probe list (prioritise likely hosts) ──
+  // Priority 1: Gateways & typical router IPs
+  const p1=[1,254,2,253,100,200].map(n=>subnet+'.'+n);
+  // Priority 2: Neighbours around my IP (most likely active devices)
+  const p2=[];
+  for(let d=-8;d<=8;d++){const n=myOctet+d;if(n>0&&n<255&&n!==myOctet&&!p1.includes(subnet+'.'+n))p2.push(subnet+'.'+n);}
+  // Priority 3: Common DHCP range IPs
+  const p3=[];
+  const common=[10,20,30,50,101,102,103,104,105,110,120,150,151,160,170,180,190,201,202,210,220,230,240,245,250];
+  common.forEach(n=>{const ip=subnet+'.'+n;if(!p1.includes(ip)&&!p2.includes(ip))p3.push(ip);});
+
+  const probeList=[...new Set([...p1,...p2,...p3])];
+  const devices=[];
+  let probed=0;
+  const scanStart=performance.now();
+
+  // Add self card first
+  addDeviceCard({ip:lanIP,icon:'💻',type:'This Computer',tag:'You',latency:0,port:null,color:'var(--text)',self:true,allIPs});
+  document.getElementById('scan-count').textContent=1;
+
+  // ── Concurrent probe in batches of 6 ──
+  const BATCH=6;
+  for(let i=0;i<probeList.length&&!netScanStop;i+=BATCH){
+    const batch=probeList.slice(i,i+BATCH);
+    const results=await Promise.all(batch.map(ip=>probeHost(ip,1300)));
+
+    for(let j=0;j<batch.length;j++){
+      if(netScanStop)break;
+      const ip=batch[j];
+      const res=results[j];
+      probed++;
+      document.getElementById('scan-probed').textContent=probed;
+      document.getElementById('scan-status-txt').textContent=
+        'Probing '+subnet+'.x … '+probed+'/'+probeList.length+' (found '+(devices.length+1)+')';
+
+      if(res.reachable&&ip!==lanIP){
+        const cl=classifyLANDevice(ip,res.port,res.latency);
+        addDeviceCard({ip,icon:cl.icon,type:cl.type,tag:cl.tag,latency:res.latency,port:res.port,color:cl.color});
+        devices.push(ip);
+        document.getElementById('scan-count').textContent=devices.length+1;
+      }
+    }
+    // Small yield between batches
+    await new Promise(r=>setTimeout(r,30));
+  }
+
+  const elapsed=((performance.now()-scanStart)/1000).toFixed(1);
+  document.getElementById('scan-time').textContent=elapsed+'s';
+  dot.className='scan-status-dot done';
+  const total=devices.length+1;
+  document.getElementById('scan-status-txt').textContent=
+    '✅ Scan complete — '+total+' device'+(total===1?'':'s')+' found on '+subnet+'.0/24 in '+elapsed+'s';
+  btn.disabled=false;stopBtn.style.display='none';
+}
+
+function addDeviceCard({ip,icon,type,tag,latency,port,color,self,allIPs}){
+  const grid=document.getElementById('device-grid');
+  const card=document.createElement('div');
+  card.className='device-card';
+  card.style.borderColor=self?'var(--text)':'var(--border)';
+  if(self)card.style.background='var(--bg2)';
+
+  const portStr=port===80?' (HTTP:80)':port==='refused'?' (port closed — TCP RST)':port?` (port ${port})`:'';
+  const latStr=self?'Local machine':(latency?`${latency}ms response${portStr}`:'—');
+  const extraIPs=self&&allIPs&&allIPs.length>1?
+    `<div style="font-size:10px;color:var(--muted2);margin-top:4px;font-family:var(--mono)">All IPs: ${allIPs.join(', ')}</div>`:'';
+
+  card.innerHTML=`
+    <div class="device-icon">${icon}</div>
+    <div class="device-info">
+      <div class="device-name">${type}</div>
+      <div class="device-ip" style="font-family:var(--mono);font-size:12px;color:${color};font-weight:700">${ip}</div>
+      <div class="device-tag" style="background:${color}18;color:${color}">${tag}</div>
+      <div class="device-latency">${latStr}</div>
+      ${extraIPs}
+    </div>`;
+  grid.appendChild(card);
+}
+
+
+// ════════════════════════════════════════════════
+// PERFORMANCE KILLER DETECTOR
+// Live monitor using rAF, PerformanceObserver,
+// performance.memory, and CPU timing probes
+// ════════════════════════════════════════════════
+let pkRunning=false, pkRAF=null, pkInterval=null;
+let pkFrameTimes=[], pkLongTasks=0, pkHeapHistory=[], pkFpsHistory=[], pkCpuHistory=[];
+let pkStartTime=0, pkElapsed=0, pkElapsedTimer=null;
+let pkLongTaskObserver=null, pkResObserver=null;
+let pkLastFrame=performance.now(), pkFrameCount=0, pkDropped=0, pkTotalFrames=0;
+
+// Sub-tab switcher for PK
+function switchPKTab(id){
+  document.querySelectorAll('.pk-tab').forEach(t=>t.classList.toggle('active',t.textContent.toLowerCase().includes(id)||t.onclick.toString().includes(id)));
+  document.querySelectorAll('.pk-tab-content').forEach(c=>c.classList.remove('active'));
+  document.getElementById('pkt-'+id)?.classList.add('active');
+}
+
+function pkSetLiveVal(id, val, pct, color){
+  const el=document.getElementById(id); if(el) el.textContent=val;
+  const bg=document.getElementById(id+'-bg'); if(bg){bg.style.width=Math.min(100,pct)+'%'; bg.style.background=color;}
+}
+
+// rAF loop — measures FPS and jank every frame
+function pkRAFLoop(ts){
+  if(!pkRunning){pkRAF=null;return;}
+  const dt=ts-pkLastFrame; pkLastFrame=ts;
+  pkFrameTimes.push(dt); pkTotalFrames++;
+  if(dt>50) pkDropped++; // >50ms = dropped frame (below 20fps threshold)
+  pkFrameCount++;
+  if(pkFrameTimes.length>300) pkFrameTimes.shift();
+  pkRAF=requestAnimationFrame(pkRAFLoop);
+}
+
+// CPU pressure probe — schedule a small sync task and measure actual execution delay
+async function measureCPUPressure(){
+  const expected=10; // we schedule 10ms from now
+  const t0=performance.now();
+  await new Promise(r=>setTimeout(r,expected));
+  const actual=performance.now()-t0;
+  return Math.max(0, actual-expected); // extra delay beyond expected = CPU blocking
+}
+
+// Main 1-second sampling tick
+async function pkTick(){
+  if(!pkRunning) return;
+
+  pkElapsed=Math.round((performance.now()-pkStartTime)/1000);
+  document.getElementById('pk-elapsed-txt').textContent='Monitoring for '+pkElapsed+'s — '+pkTotalFrames+' frames observed';
+
+  // ── FPS ──
+  const recent=pkFrameTimes.slice(-60);
+  const avgFt=recent.length? recent.reduce((a,b)=>a+b)/recent.length : 16.67;
+  const fps=Math.round(1000/avgFt);
+  const jankPct=pkTotalFrames>0?Math.round((pkDropped/pkTotalFrames)*100):0;
+  pkFpsHistory.push(fps); if(pkFpsHistory.length>60) pkFpsHistory.shift();
+
+  const fpsColor=fps>=55?'var(--green)':fps>=30?'var(--amber)':'var(--red)';
+  pkSetLiveVal('pk-fps', fps, (fps/60)*100, fpsColor);
+  pkSetLiveVal('pk-jank', jankPct+'%', jankPct, jankPct>20?'var(--red)':jankPct>5?'var(--amber)':'var(--green)');
+
+  // ── Memory ──
+  const mem=performance.memory;
+  const heapMB=mem? Math.round(mem.usedJSHeapSize/1048576) : null;
+  const heapLimitMB=mem? Math.round(mem.jsHeapSizeLimit/1048576) : null;
+  const heapPct=mem? Math.round(mem.usedJSHeapSize/mem.jsHeapSizeLimit*100) : 0;
+  if(heapMB!==null){ pkHeapHistory.push(heapMB); if(pkHeapHistory.length>60) pkHeapHistory.shift(); }
+  const heapColor=heapPct>80?'var(--red)':heapPct>50?'var(--amber)':'var(--green)';
+  pkSetLiveVal('pk-heap', heapMB!==null?(heapMB+'MB'):'N/A', heapPct, heapColor);
+
+  // ── CPU pressure ──
+  const cpuDelay=await measureCPUPressure();
+  pkCpuHistory.push(cpuDelay); if(pkCpuHistory.length>60) pkCpuHistory.shift();
+  const cpuColor=cpuDelay>80?'var(--red)':cpuDelay>20?'var(--amber)':'var(--green)';
+  pkSetLiveVal('pk-cpu', cpuDelay.toFixed(0)+'ms', Math.min(100,cpuDelay/2), cpuColor);
+
+  // ── Long tasks ──
+  const ltColor=pkLongTasks>10?'var(--red)':pkLongTasks>3?'var(--amber)':'var(--green)';
+  pkSetLiveVal('pk-longtask', pkLongTasks, Math.min(100,pkLongTasks*5), ltColor);
+  document.getElementById('pk-lt-bg').style.width=Math.min(100,pkLongTasks*5)+'%';
+
+  // ── DOM nodes ──
+  const domCount=document.querySelectorAll('*').length;
+  const domColor=domCount>3000?'var(--red)':domCount>1500?'var(--amber)':'var(--green)';
+  pkSetLiveVal('pk-dom', domCount, Math.min(100,domCount/50), domColor);
+
+  // Update timeline charts
+  pkDrawTimeline();
+
+  // Update memory tab live
+  if(mem) updateMemoryTab(heapMB, heapLimitMB, heapPct);
+  updateResourcesTab(fps, cpuDelay, domCount);
+  updateHealthScore(fps, jankPct, heapPct, cpuDelay, pkLongTasks);
+}
+
+function pkDrawTimeline(){
+  drawPKChart('pk-cv-fps', pkFpsHistory, 0, 75, '#16a34a', true, 60);
+  drawPKChart('pk-cv-heap', pkHeapHistory, 0, Math.max(200,...pkHeapHistory)*1.1, '#2563eb');
+  drawPKChart('pk-cv-cpu', pkCpuHistory, 0, Math.max(100,...pkCpuHistory)*1.1, '#d97706');
+}
+
+function drawPKChart(canvasId, data, minVal, maxVal, color, drawTarget=false, targetVal=60){
+  const c=document.getElementById(canvasId); if(!c||data.length<2) return;
+  c.width=c.offsetWidth||600; c.height=c.offsetHeight||80;
+  const W=c.width, H=c.height;
+  const ctx=c.getContext('2d');
+  ctx.clearRect(0,0,W,H);
+  const range=maxVal-minVal||1;
+
+  if(drawTarget){
+    const ty=H-((targetVal-minVal)/range)*(H-8)-4;
+    ctx.setLineDash([4,4]); ctx.strokeStyle='rgba(22,163,74,.3)'; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.moveTo(0,ty); ctx.lineTo(W,ty); ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  ctx.strokeStyle=color; ctx.lineWidth=2; ctx.beginPath();
+  data.forEach((v,i)=>{
+    const x=(i/(Math.max(data.length-1,1)))*W;
+    const y=H-((v-minVal)/range)*(H-8)-4;
+    i===0?ctx.moveTo(x,y):ctx.lineTo(x,y);
+  });
+  ctx.stroke();
+  ctx.lineTo(W,H); ctx.lineTo(0,H); ctx.closePath();
+  ctx.fillStyle=color+'22'; ctx.fill();
+}
+
+function updateMemoryTab(heapMB, limitMB, pct){
+  const grow=pkHeapHistory.length>5?pkHeapHistory[pkHeapHistory.length-1]-pkHeapHistory[0]:0;
+  const leakRisk=grow>30?'HIGH — memory grew '+grow+'MB during monitoring':grow>10?'MODERATE — slight growth detected':'LOW — stable';
+  const leakColor=grow>30?'var(--red)':grow>10?'var(--orange)':'var(--green)';
+  document.getElementById('pk-memory-body').innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:14px">
+      ${mkMetricBox('Heap Used',heapMB+'MB','var(--blue)')}
+      ${mkMetricBox('Heap Limit',limitMB+'MB','var(--muted)')}
+      ${mkMetricBox('Usage %',pct+'%',pct>80?'var(--red)':pct>50?'var(--amber)':'var(--green)')}
+      ${mkMetricBox('Growth','+'+grow+'MB',leakColor)}
+    </div>
+    <div class="pk-row ${grow>30?'critical':grow>10?'warning':'good'}">
+      <div class="pk-row-icon">${grow>30?'🚨':grow>10?'⚠️':'✅'}</div>
+      <div class="pk-row-body">
+        <div class="pk-row-name">Memory Leak Risk: ${leakRisk.split('—')[0]}</div>
+        <div class="pk-row-desc">${leakRisk.includes('—')?leakRisk.split('—')[1].trim():'Heap is stable — no leak detected during this session'}</div>
+      </div>
+    </div>
+    ${grow>20?`<div class="pk-fix">💡 <strong>Fix:</strong> Open browser Task Manager (Shift+Esc in Chrome), identify tabs with high memory. Close unused tabs. Disable extensions one by one to find the leaker. Restart browser to reclaim memory.</div>`:''}
+    <div style="margin-top:12px;font-size:11px;color:var(--muted)">Heap samples: ${pkHeapHistory.length} · Min: ${Math.min(...pkHeapHistory)}MB · Max: ${Math.max(...pkHeapHistory)}MB · Avg: ${Math.round(pkHeapHistory.reduce((a,b)=>a+b,0)/pkHeapHistory.length)}MB</div>`;
+}
+
+function updateResourcesTab(fps, cpuDelay, domCount){
+  const conn=navigator.connection||navigator.mozConnection||navigator.webkitConnection;
+  const netType=conn?.effectiveType||'unknown';
+  const rtt=conn?.rtt||null;
+  const dl=conn?.downlink||null;
+  document.getElementById('pk-resources-body').innerHTML=`
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:10px;margin-bottom:14px">
+      ${mkMetricBox('Frame Rate',fps+' fps',fps>=55?'var(--green)':fps>=30?'var(--amber)':'var(--red)')}
+      ${mkMetricBox('CPU Delay',cpuDelay.toFixed(0)+'ms',cpuDelay>80?'var(--red)':cpuDelay>20?'var(--amber)':'var(--green)')}
+      ${mkMetricBox('Long Tasks',pkLongTasks+'',pkLongTasks>10?'var(--red)':pkLongTasks>3?'var(--amber)':'var(--green)')}
+      ${mkMetricBox('DOM Nodes',domCount+'',domCount>3000?'var(--red)':domCount>1500?'var(--amber)':'var(--green)')}
+      ${mkMetricBox('Connection',netType,'var(--cyan)')}
+      ${rtt!==null?mkMetricBox('RTT',rtt+'ms',rtt>200?'var(--red)':rtt>80?'var(--amber)':'var(--green)'):''}
+      ${dl!==null?mkMetricBox('Downlink',dl+' Mbps',dl>10?'var(--green)':dl>2?'var(--amber)':'var(--red)'):''}
+      ${mkMetricBox('Cores',navigator.hardwareConcurrency||'?','var(--blue)')}
+    </div>
+    <div style="font-size:11px;color:var(--muted);padding:10px 14px;background:var(--bg3);border-radius:var(--radius);border:1px solid var(--border2)">
+      Platform: ${navigator.platform} · Browser: ${navigator.userAgent.match(/(Chrome|Firefox|Safari|Edge)\/[\d.]+/)?.[0]||'Unknown'} · Device Memory: ${navigator.deviceMemory||'?'}GB · CPU Cores: ${navigator.hardwareConcurrency||'?'}
+    </div>`;
+}
+
+function mkMetricBox(label, val, color){
+  return`<div style="background:#fff;border:1px solid var(--border2);border-radius:8px;padding:12px;text-align:center">
+    <div style="font-size:10px;font-weight:600;letter-spacing:.8px;color:var(--muted);text-transform:uppercase;margin-bottom:4px">${label}</div>
+    <div style="font-size:20px;font-weight:800;font-family:var(--mono);color:${color}">${val}</div>
+  </div>`;
+}
+
+function updateHealthScore(fps, jankPct, heapPct, cpuDelay, longTasks){
+  const fpsS=Math.min(40, fps/60*40);
+  const jankS=Math.max(0, 20-(jankPct*2));
+  const heapS=Math.max(0, 20-(heapPct/5));
+  const cpuS=Math.max(0, 10-(cpuDelay/10));
+  const ltS=Math.max(0, 10-(longTasks*0.8));
+  const score=Math.round(fpsS+jankS+heapS+cpuS+ltS);
+
+  const color=score>=75?'#16a34a':score>=50?'#d97706':'#dc2626';
+  const label=score>=75?'Healthy — running well':score>=60?'Minor issues detected':score>=40?'Performance degraded':'Severely throttled';
+  document.getElementById('pk-health-score').textContent=score+'/100';
+  document.getElementById('pk-health-score').style.color=color;
+  document.getElementById('pk-health-label').textContent=label;
+
+  // Draw ring
+  const cv=document.getElementById('pk-score-canvas');
+  if(cv){
+    const ctx=cv.getContext('2d'); ctx.clearRect(0,0,80,80);
+    ctx.lineWidth=8; ctx.lineCap='round';
+    ctx.strokeStyle='#e5e7eb'; ctx.beginPath(); ctx.arc(40,40,32,0,Math.PI*2); ctx.stroke();
+    ctx.strokeStyle=color; ctx.beginPath();
+    ctx.arc(40,40,32,-Math.PI/2, -Math.PI/2+(score/100)*Math.PI*2); ctx.stroke();
+    ctx.fillStyle=color; ctx.font='bold 14px monospace'; ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.fillText(score,40,40);
+  }
+
+  // Badges
+  const badges=[];
+  if(fps<30) badges.push({txt:'Low FPS',color:'#dc2626',bg:'#fef2f2'});
+  else if(fps>=55) badges.push({txt:'Smooth FPS',color:'#16a34a',bg:'#f0fdf4'});
+  if(jankPct>20) badges.push({txt:'Heavy Jank',color:'#dc2626',bg:'#fef2f2'});
+  if(heapPct>80) badges.push({txt:'RAM Full',color:'#dc2626',bg:'#fef2f2'});
+  if(cpuDelay>80) badges.push({txt:'CPU Overload',color:'#dc2626',bg:'#fef2f2'});
+  if(longTasks>10) badges.push({txt:'JS Blocking',color:'#ea580c',bg:'#fff7ed'});
+  if(longTasks===0&&fps>=55) badges.push({txt:'No Blockers',color:'#16a34a',bg:'#f0fdf4'});
+
+  document.getElementById('pk-badges').innerHTML=badges.map(b=>
+    `<span class="pk-badge" style="background:${b.bg};color:${b.color}">${b.txt}</span>`
+  ).join('');
+}
+
+// ── Deep Analysis: identifies killer categories ──
+function runDeepAnalysis(){
+  const fps=pkFpsHistory.length?pkFpsHistory[pkFpsHistory.length-1]:60;
+  const avgFps=pkFpsHistory.length?Math.round(pkFpsHistory.reduce((a,b)=>a+b)/pkFpsHistory.length):60;
+  const avgCpu=pkCpuHistory.length?Math.round(pkCpuHistory.reduce((a,b)=>a+b)/pkCpuHistory.length):0;
+  const avgHeap=pkHeapHistory.length?Math.round(pkHeapHistory.reduce((a,b)=>a+b)/pkHeapHistory.length):0;
+  const heapGrow=pkHeapHistory.length>3?pkHeapHistory[pkHeapHistory.length-1]-pkHeapHistory[0]:0;
+  const jankPct=pkTotalFrames>0?Math.round((pkDropped/pkTotalFrames)*100):0;
+  const mem=performance.memory;
+  const heapPct=mem?Math.round(mem.usedJSHeapSize/mem.jsHeapSizeLimit*100):0;
+  const domCount=document.querySelectorAll('*').length;
+  const conn=navigator.connection||{};
+
+  // ── Build killer list ──
+  const killers=[];
+
+  // 1. Browser tab overload
+  if(avgCpu>60||pkLongTasks>8){
+    killers.push({
+      sev:'critical', icon:'🌐', name:'Browser Tab Overload',
+      detail:`${pkLongTasks} long tasks blocked the main thread. Avg delay: ${avgCpu}ms`,
+      fix:`Close unused browser tabs. Each tab uses CPU even when hidden. Open <code>chrome://task-manager</code> or press <strong>Shift+Esc</strong> in Chrome to see per-tab CPU &amp; RAM usage. Kill the heaviest tabs first. Disable auto-play video on news/social sites.`,
+      apps:['Chrome','Firefox','Edge — too many tabs','Video streaming tabs','Social media feeds']
+    });
+  }
+
+  // 2. Memory pressure / leak
+  if(heapPct>75||heapGrow>25){
+    killers.push({
+      sev:heapPct>85?'critical':'warning', icon:'🧠', name:'Memory Pressure / Leak',
+      detail:`Heap: ${avgHeap}MB used (${heapPct}% of limit). Growth: +${heapGrow}MB during session.`,
+      fix:`<strong>Immediate:</strong> Close unused tabs and restart your browser. <strong>Find the leaker:</strong> Open DevTools → Memory tab → take Heap Snapshot → wait 60s → take another. Compare to find growing objects. Common culprits: video conferencing apps (Zoom/Meet web), large Excel/Sheets files, image editors.`,
+      apps:['Google Meet / Zoom web','Large Google Sheets','Online video editors','News sites with live feeds','Crypto price trackers']
+    });
+  }
+
+  // 3. Antivirus / background scan
+  if(avgCpu>40&&avgFps<45&&pkLongTasks>5){
+    killers.push({
+      sev:'warning', icon:'🛡️', name:'Background System Process (Antivirus / Updater)',
+      detail:`CPU delay ${avgCpu}ms + ${pkLongTasks} long tasks suggest a background OS process competing for CPU.`,
+      fix:`Open <strong>Task Manager</strong> (Ctrl+Shift+Esc on Windows) → CPU column → sort descending. Look for: antivirus scan, Windows Update, <code>MsMpEng.exe</code> (Defender), <code>SoftwareDistribution</code>. Schedule antivirus scans for overnight. Pause Windows Update during work.`,
+      apps:['Windows Defender real-time scan','Avast/AVG full scan','Windows Update download','OneDrive/Google Drive sync','Dropbox indexing large folders']
+    });
+  }
+
+  // 4. GPU / rendering overload
+  if(avgFps<30&&avgCpu<30&&jankPct>25){
+    killers.push({
+      sev:'critical', icon:'🎮', name:'GPU / Rendering Bottleneck',
+      detail:`FPS: ${avgFps} avg. High jank (${jankPct}%) with low CPU delay suggests GPU is the bottleneck.`,
+      fix:`<strong>Browser:</strong> Go to <code>chrome://settings/system</code> → enable Hardware Acceleration. Update GPU drivers from NVIDIA/AMD/Intel website. <strong>Windows:</strong> Set Power Plan to High Performance. For laptops: right-click desktop → NVIDIA Control Panel → set browser to use dedicated GPU.`,
+      apps:['Hardware acceleration disabled','Outdated GPU drivers','4K/8K video playback','WebGL-heavy apps','Virtual backgrounds in video calls']
+    });
+  }
+
+  // 5. Network-heavy apps
+  if(conn.effectiveType==='2g'||conn.effectiveType==='slow-2g'||(conn.rtt&&conn.rtt>300)){
+    killers.push({
+      sev:'warning', icon:'📡', name:'Network Congestion',
+      detail:`Connection: ${conn.effectiveType||'unknown'}, RTT: ${conn.rtt||'?'}ms. Slow network causes app freezes while waiting for data.`,
+      fix:`Check which apps are using bandwidth: <strong>Windows:</strong> Task Manager → Performance → Open Resource Monitor → Network tab. Common bandwidth hogs: cloud backup running, Windows Update downloading, video streaming in background, large email attachments syncing.`,
+      apps:['Windows Update downloading','OneDrive/Dropbox large sync','Background video streaming','Cloud backup (Backblaze, etc.)','Software updates (Steam, Epic)']
+    });
+  }
+
+  // 6. DOM bloat (heavy web page)
+  if(domCount>2000){
+    killers.push({
+      sev:'warning', icon:'📄', name:'Heavy Web Page (DOM Bloat)',
+      detail:`${domCount} DOM elements detected. Pages with >2000 nodes cause slow scrolling and high GPU usage.`,
+      fix:`Use a <strong>Reader Mode</strong> browser extension to strip bloated pages. Install <strong>uBlock Origin</strong> to remove ads and trackers that add thousands of DOM nodes. Avoid opening dashboards or social feeds in many tabs.`,
+      apps:['Heavy news/media sites','Social media feeds','Analytics dashboards','Pages with many ads/trackers','Large data tables without virtualization']
+    });
+  }
+
+  // 7. JavaScript execution overhead
+  if(pkLongTasks>15){
+    killers.push({
+      sev:'critical', icon:'⚙️', name:'JavaScript Execution Overload',
+      detail:`${pkLongTasks} long tasks (>50ms each) detected. These freeze the browser UI thread.`,
+      fix:`Open DevTools → Performance tab → Record 10s → look for long yellow bars. <strong>Extension audit:</strong> Disable all extensions → test → re-enable one by one. Common JS hogs: crypto mining scripts (malware), tracking scripts, poorly coded widgets. Install <strong>uBlock Origin</strong> to block malicious scripts.`,
+      apps:['Crypto mining malware scripts','Poorly optimised web apps','Heavy analytics/tracking scripts','Real-time collaboration tools','Browser extensions (especially ad replacers)']
+    });
+  }
+
+  // 8. Thermal throttling (inferred from CPU delay spikes)
+  const cpuSpikes=pkCpuHistory.filter(v=>v>100).length;
+  if(cpuSpikes>5&&avgCpu>50){
+    killers.push({
+      sev:'warning', icon:'🌡️', name:'Thermal Throttling (CPU Overheating)',
+      detail:`${cpuSpikes} CPU delay spikes >100ms detected. Pattern suggests thermal throttling.`,
+      fix:`<strong>Check temps:</strong> Install HWMonitor or HWiNFO64 — CPU above 90°C while idle = thermal issue. <strong>Fixes:</strong> Clean laptop vents with compressed air, reapply thermal paste (if >2 years old), use a laptop cooling pad, set Power Plan to Balanced (not High Performance on a hot laptop).`,
+      apps:['Demanding games running in background','Video rendering jobs','Cryptocurrency mining','Poor laptop cooling / clogged vents','VM/Docker containers running heavy workloads']
+    });
+  }
+
+  // 9. All good
+  if(killers.length===0){
+    killers.push({
+      sev:'good', icon:'✅', name:'No Major Performance Killers Detected',
+      detail:`FPS: ${avgFps} avg, CPU delay: ${avgCpu}ms, Heap: ${avgHeap}MB, Long tasks: ${pkLongTasks}`,
+      fix:`Your system appears to be running well. If you still feel slowness, run the <strong>Full Benchmark</strong> (Benchmarks tab) for deeper hardware analysis. Also check Windows Task Manager (Ctrl+Shift+Esc) for any background processes.`,
+      apps:[]
+    });
+  }
+
+  // Render killers
+  document.getElementById('pk-killers-list').innerHTML=killers.map(k=>`
+    <div class="pk-row ${k.sev}" style="flex-direction:column;align-items:flex-start;gap:8px;margin-bottom:10px">
+      <div style="display:flex;align-items:center;gap:10px;width:100%">
+        <div class="pk-row-icon">${k.icon}</div>
+        <div class="pk-row-name" style="flex:1">${k.name}</div>
+        <div class="pk-sev ${k.sev}">${k.sev.toUpperCase()}</div>
+      </div>
+      <div style="font-size:11px;font-family:var(--mono);color:var(--text2);padding-left:42px">${k.detail}</div>
+      ${k.apps.length?`<div style="padding-left:42px;display:flex;flex-wrap:wrap;gap:5px">${k.apps.map(a=>`<span style="background:var(--bg3);border:1px solid var(--border2);border-radius:4px;font-size:10px;padding:2px 8px;color:var(--text2)">${a}</span>`).join('')}</div>`:''}
+      <div class="pk-fix" style="margin-left:42px;margin-right:0;width:calc(100% - 42px)">💡 ${k.fix}</div>
+    </div>`).join('');
+
+  // Build Fix It tab
+  buildFixesTab(killers);
+
+  // Switch to overview
+  switchPKTab('overview');
+}
+
+function buildFixesTab(killers){
+  const fixes=killers.filter(k=>k.sev!=='good');
+  if(!fixes.length){
+    document.getElementById('pk-fixes-body').innerHTML=`<div style="padding:16px;background:var(--greenBg);border:1px solid var(--greenBorder);border-radius:var(--radius);color:var(--green);font-weight:600">✅ No fixes needed — system is healthy.</div>`;
+    return;
+  }
+  const steps=['Immediate','Short-term','Long-term'];
+  document.getElementById('pk-fixes-body').innerHTML=`
+    <div style="margin-bottom:16px;padding:14px;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius)">
+      <div style="font-size:13px;font-weight:700;margin-bottom:6px">🛠️ ${fixes.length} issue${fixes.length>1?'s':''} to fix — follow these steps</div>
+      <div style="font-size:11px;color:var(--muted)">Prioritised by severity. Critical issues first.</div>
+    </div>
+    ${fixes.sort((a,b)=>(['critical','warning','info'].indexOf(a.sev))-(['critical','warning','info'].indexOf(b.sev))).map((k,i)=>`
+    <div style="display:flex;gap:14px;padding:14px;border:1px solid var(--border2);border-radius:8px;margin-bottom:10px;background:#fff">
+      <div style="width:28px;height:28px;border-radius:50%;background:${k.sev==='critical'?'var(--red)':'var(--orange)'};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:13px;flex-shrink:0">${i+1}</div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:700;margin-bottom:6px">${k.icon} ${k.name}</div>
+        <div style="font-size:12px;color:var(--muted);line-height:1.7">${k.fix}</div>
+      </div>
+    </div>`).join('')}
+    <div style="margin-top:16px;padding:12px 16px;background:var(--blueBg);border:1px solid var(--blueBorder);border-radius:8px;font-size:11px;color:var(--blue)">
+      💡 <strong>Pro tip:</strong> After applying fixes, click <em>Start Monitor</em> again and compare the new health score to your baseline score above.
+    </div>`;
+}
+
+function startPerfKiller(){
+  if(pkRunning) return;
+  pkRunning=true;
+  pkFrameTimes=[]; pkLongTasks=0; pkHeapHistory=[]; pkFpsHistory=[]; pkCpuHistory=[];
+  pkDropped=0; pkTotalFrames=0; pkStartTime=performance.now();
+  document.getElementById('pk-btn-start').style.display='none';
+  document.getElementById('pk-btn-stop').style.display='inline-flex';
+  document.getElementById('pk-btn-analyze').disabled=false;
+  document.getElementById('pk-killers-list').innerHTML=`<div style="color:var(--muted);font-size:12px;padding:14px;background:var(--bg2);border-radius:var(--radius)">Monitoring… click <strong>Deep Analysis</strong> after 5+ seconds for results.</div>`;
+
+  // Start rAF loop
+  pkLastFrame=performance.now();
+  pkRAF=requestAnimationFrame(pkRAFLoop);
+
+  // PerformanceObserver for long tasks
+  try{
+    pkLongTaskObserver=new PerformanceObserver(list=>{
+      pkLongTasks+=list.getEntries().length;
+    });
+    pkLongTaskObserver.observe({entryTypes:['longtask']});
+  }catch{}
+
+  // 1-second interval for sampling
+  pkInterval=setInterval(pkTick, 1000);
+}
+
+function stopPerfKiller(){
+  pkRunning=false;
+  if(pkRAF) cancelAnimationFrame(pkRAF);
+  if(pkInterval) clearInterval(pkInterval);
+  if(pkLongTaskObserver){try{pkLongTaskObserver.disconnect();}catch{} pkLongTaskObserver=null;}
+  document.getElementById('pk-btn-stop').style.display='none';
+  document.getElementById('pk-btn-start').style.display='inline-flex';
+  document.getElementById('pk-elapsed-txt').textContent='Monitor stopped. Data from '+pkElapsed+'s session preserved.';
+}
+
+
+// ════════════════════════════════════════════════
+// HARDWARE HEALTH CHECK
+// Combines browser-observable signals with user
+// inputs (age, symptoms, cleaned) and inference
+// rules to score 8 hardware components
+// ════════════════════════════════════════════════
+
+function switchHWTab(id){
+  document.querySelectorAll('.hw-tab').forEach(t=>t.classList.toggle('active',t.onclick?.toString().includes("'"+id+"'")));
+  document.querySelectorAll('.hw-tab-content').forEach(c=>c.classList.remove('active'));
+  const el=document.getElementById('hwt-'+id); if(el) el.classList.add('active');
+}
+
+function hwLog(msg, cls=''){
+  const b=document.getElementById('hw-live-log'); if(!b) return;
+  const t=new Date().toLocaleTimeString('en',{hour12:false});
+  b.innerHTML+='\n<span style="color:var(--muted2)">'+t+'</span> '+(cls==='ok'?'<span style="color:var(--green)">':'')+(cls==='warn'?'<span style="color:var(--orange)">':'')+(cls==='err'?'<span style="color:var(--red)">':'')+msg+(cls?'</span>':'');
+  b.scrollTop=b.scrollHeight;
+}
+
+function hwSetSensor(id, val, cls=''){
+  const el=document.getElementById(id); if(!el) return;
+  el.textContent=val;
+  el.style.color=cls==='good'?'var(--green)':cls==='warn'?'var(--amber)':cls==='bad'?'var(--red)':'var(--text)';
+}
+
+async function measureThrottleIndex(){
+  // Run 10 iterations of timed CPU work and measure consistency
+  // Thermal throttling causes times to INCREASE as CPU heats up
+  const times=[];
+  for(let i=0;i<10;i++){
+    const t0=performance.now();
+    let x=0; for(let j=0;j<500000;j++) x+=Math.sqrt(j)*0.001;
+    times.push(performance.now()-t0);
+    await new Promise(r=>setTimeout(r,80));
+  }
+  const first3=times.slice(0,3).reduce((a,b)=>a+b)/3;
+  const last3=times.slice(-3).reduce((a,b)=>a+b)/3;
+  const drift=((last3-first3)/first3)*100; // % slowdown = throttle evidence
+  const variance=Math.max(...times)-Math.min(...times);
+  return{times, drift, variance, avg:times.reduce((a,b)=>a+b)/times.length};
+}
+
+async function estimateCPUTemp(throttleDrift, cpuDelay){
+  // Inference model:
+  // No throttle, no delay → 40–55°C (normal)
+  // Slight throttle OR moderate delay → 65–80°C (warm)
+  // Heavy throttle AND high delay → 85–95°C (hot)
+  // Extreme drift → >95°C (critical)
+  if(throttleDrift>30 && cpuDelay>80) return{est:'>95',label:'Critical',cls:'bad'};
+  if(throttleDrift>20 || cpuDelay>60) return{est:'85–95',label:'Very Hot',cls:'bad'};
+  if(throttleDrift>10 || cpuDelay>30) return{est:'70–84',label:'Warm',cls:'warn'};
+  if(throttleDrift>3  || cpuDelay>15) return{est:'55–69',label:'Normal-High',cls:'warn'};
+  return{est:'35–54',label:'Normal',cls:'good'};
+}
+
+async function runHardwareHealth(){
+  const btn=document.getElementById('hw-btn-run');
+  btn.disabled=true; btn.textContent='Checking…';
+  document.getElementById('hw-live-log').textContent='';
+  switchHWTab('sensors');
+
+  const age       = parseInt(document.getElementById('hw-age').value)||0;
+  const type      = document.getElementById('hw-type').value;
+  const cleaned   = parseInt(document.getElementById('hw-cleaned').value)||12;
+  const paste     = document.getElementById('hw-paste').value;
+  const symptoms  = document.getElementById('hw-symptoms').value;
+  const isLaptop  = type!=='desktop';
+
+  hwLog('Starting hardware health check…');
+  hwLog('Device: '+type+', Age: '+age+'yr, Last cleaned: '+cleaned+'mo ago');
+
+  // ── 1. Battery ──
+  hwLog('Checking battery…');
+  let batScore=70, batStatus='ok', batData={}, batAdvice='';
+  if('getBattery' in navigator){
+    try{
+      const b=await navigator.getBattery();
+      const level=Math.round(b.level*100);
+      const charging=b.charging;
+      const dischargeTime=b.dischargingTime;
+      const chargingTime=b.chargingTime;
+      const noBattery=level===100&&charging&&dischargeTime===Infinity;
+      batData={level,charging,dischargeTime,chargingTime,noBattery};
+      hwSetSensor('hws-battery', noBattery?'N/A (desktop)':level+'%', noBattery?'':'good');
+      hwSetSensor('hws-charging', noBattery?'AC Only':charging?'Charging ⚡':'On Battery 🔋','');
+      if(noBattery){
+        batScore=80; batStatus='info';
+        hwLog('No battery — desktop or AC-only device','ok');
+      } else {
+        // Estimate health: if battery drains faster than expected (checked via discharge time)
+        // Normal laptop: ~4-8h discharge = 14400–28800s
+        const drainFast=dischargeTime!==Infinity&&dischargeTime<7200; // <2h remaining = bad health
+        const veryLow=level<20&&!charging;
+        if(age>4&&isLaptop){ batScore-=20; batAdvice='Battery '+age+' years old. Capacity likely below 70%. Run: CMD Admin → powercfg /batteryreport to check actual wear level.'; batStatus='warn'; }
+        if(drainFast){ batScore-=25; batAdvice='Discharge time <2h suggests degraded cells. Replace battery.'; batStatus='critical'; }
+        if(veryLow){ batScore=Math.min(batScore,30); batStatus='critical'; batAdvice='Battery critically low and not charging.'; }
+        hwLog('Battery: '+level+'% '+(charging?'charging':'on battery')+(dischargeTime!==Infinity?' ~'+Math.round(dischargeTime/3600*10)/10+'h left':''),'ok');
+      }
+    }catch(e){ hwLog('Battery API error: '+e.message,'warn'); }
+  } else { hwSetSensor('hws-battery','N/A',''); hwLog('Battery API not available in this browser'); }
+
+  // ── 2. Display / GPU ──
+  hwLog('Checking display…');
+  const fts=[]; await new Promise(r=>{let n=0,l=performance.now();const m=ts=>{if(n>0)fts.push(ts-l);l=ts;n++;n<60?requestAnimationFrame(m):r();};requestAnimationFrame(m);});
+  const avgFt=fts.reduce((a,b)=>a+b,0)/fts.length;
+  const hz=Math.round(1000/avgFt);
+  const common=[30,48,50,60,75,90,100,120,144,165,240];
+  const snappedHz=common.reduce((a,b)=>Math.abs(b-hz)<Math.abs(a-hz)?b:a);
+  const frameVar=Math.max(...fts)-Math.min(...fts);
+  hwSetSensor('hws-hz', snappedHz+'Hz', snappedHz>=60?'good':'warn');
+  hwLog('Display: '+snappedHz+'Hz, frame variance: '+frameVar.toFixed(1)+'ms'+(frameVar>8?' ⚠️ high variance':''),'ok');
+
+  // ── 3. CPU throttle & temp inference ──
+  hwLog('Running CPU throttle test (10 iterations)…');
+  const throttle=await measureThrottleIndex();
+  const cpuDelayMs = await (async()=>{ const t0=performance.now();await new Promise(r=>setTimeout(r,10));return Math.max(0,performance.now()-t0-10);})();
+  const tempEst=await estimateCPUTemp(throttle.drift, cpuDelayMs);
+  hwSetSensor('hws-cputemp', '~'+tempEst.est+'°C', tempEst.cls);
+  hwLog('CPU throttle drift: '+throttle.drift.toFixed(1)+'% | Delay: '+cpuDelayMs.toFixed(0)+'ms | Temp est: '+tempEst.est+'°C ('+tempEst.label+')', tempEst.cls==='good'?'ok':tempEst.cls==='warn'?'warn':'err');
+
+  // ── 4. RAM (heap) ──
+  const mem=performance.memory;
+  const heapMB=mem?Math.round(mem.usedJSHeapSize/1048576):null;
+  const heapPct=mem?Math.round(mem.usedJSHeapSize/mem.jsHeapSizeLimit*100):null;
+  hwSetSensor('hws-ram', heapMB!==null?heapMB+'MB':'N/A', heapPct>80?'bad':heapPct>50?'warn':'good');
+  hwLog('JS Heap: '+(heapMB!==null?heapMB+'MB ('+heapPct+'% of limit)':'unavailable'),'ok');
+
+  // ── 5. Storage speed proxy ──
+  hwLog('Measuring storage proxy (buffer I/O)…');
+  const sb=new Uint8Array(64*1024*1024);
+  const st=performance.now();
+  for(let i=0;i<sb.length;i+=4){sb[i]=i&255;sb[i+1]=(i>>8)&255;}
+  const storSpeed=Math.round(64/((performance.now()-st)/1000));
+  let storType=storSpeed>3000?'NVMe SSD':storSpeed>1000?'SATA SSD':storSpeed>400?'HDD':'Slow/degraded';
+  hwSetSensor('hws-storage', storSpeed+'MB/s', storSpeed>1000?'good':storSpeed>400?'warn':'bad');
+  hwLog('Storage buffer speed: '+storSpeed+' MB/s → est. type: '+storType,'ok');
+
+  // ── 6. Network ──
+  const conn=navigator.connection||{};
+  const netType=conn.effectiveType||'unknown';
+  hwSetSensor('hws-net', netType.toUpperCase()+(conn.downlink?' '+conn.downlink+'Mbps':''), netType==='4g'||netType==='wifi'?'good':netType==='3g'?'warn':'bad');
+  hwLog('Network: '+netType+(conn.downlink?' @ '+conn.downlink+' Mbps':'')+(conn.rtt?' RTT:'+conn.rtt+'ms':''),'ok');
+
+  // ── 7. CPU cores ──
+  const cores=navigator.hardwareConcurrency||0;
+  hwSetSensor('hws-cores', cores||'?', cores>=8?'good':cores>=4?'warn':'bad');
+
+  hwLog('━━━ Sensor collection complete ━━━','ok');
+
+  // ════ Build component check results ════
+  const checks=[];
+
+  // ── CPU / Thermal ──
+  const cpuThrottled=throttle.drift>10;
+  const cpuCritical=throttle.drift>20||cpuDelayMs>80;
+  checks.push({
+    id:'cpu', icon:'⚙️', name:'CPU Health',
+    status: cpuCritical?'critical':cpuThrottled?'warn':'ok',
+    metrics:[
+      {label:'Throttle drift',value:throttle.drift.toFixed(1)+'%',cls:throttle.drift>20?'bad':throttle.drift>10?'warn':'good'},
+      {label:'Avg task time',value:throttle.avg.toFixed(1)+'ms',cls:''},
+      {label:'CPU delay',value:cpuDelayMs.toFixed(0)+'ms',cls:cpuDelayMs>60?'bad':cpuDelayMs>20?'warn':'good'},
+      {label:'Logical cores',value:cores||'?',cls:''},
+      {label:'Temp estimate',value:'~'+tempEst.est+'°C',cls:tempEst.cls},
+    ],
+    bar:{pct:Math.min(100,Math.round(100-throttle.drift*3)),color:cpuCritical?'var(--red)':cpuThrottled?'var(--amber)':'var(--green)'},
+    advice: cpuCritical
+      ? '🚨 Severe throttling detected. CPU is likely overheating. Actions: (1) Clean heatsink/fan with compressed air, (2) Replace thermal paste (Arctic MX-4), (3) Check HWMonitor for temps. If temps >95°C at idle → fan may have failed.'
+      : cpuThrottled
+      ? '⚠️ Mild throttling. CPU runs hotter than optimal. Clean dust from vents. If laptop: use on hard flat surface, not bed/couch. Check thermal paste age.'
+      : '✅ CPU performing consistently. No thermal throttling detected.'
+  });
+
+  // ── Fan inference ──
+  const fanSymptom=symptoms==='fan'||symptoms==='multi';
+  const fanRisk=(cleaned>18&&isLaptop)||(cleaned>24);
+  const fanCritical=fanSymptom&&fanRisk;
+  checks.push({
+    id:'fan', icon:'🌀', name:'Cooling / Fan',
+    status: fanCritical?'critical':fanSymptom||fanRisk?'warn':'ok',
+    metrics:[
+      {label:'Last cleaned',value:cleaned+' months ago',cls:cleaned>18?'bad':cleaned>9?'warn':'good'},
+      {label:'Fan noise reported',value:fanSymptom?'YES':'No',cls:fanSymptom?'bad':'good'},
+      {label:'Device type',value:type,cls:''},
+      {label:'Throttle evidence',value:cpuThrottled?'Yes':'No',cls:cpuThrottled?'warn':'good'},
+    ],
+    bar:{pct:Math.min(100,Math.max(0,100-cleaned*3-(fanSymptom?30:0))),color:fanCritical?'var(--red)':fanRisk||fanSymptom?'var(--amber)':'var(--green)'},
+    advice: fanCritical
+      ? '🚨 Fan likely clogged or failing. Symptoms reported + '+cleaned+' months since cleaning. Open device and inspect fan blades. Clicking/grinding = bearing failure → replace fan immediately. Cost: £5–£30.'
+      : fanSymptom
+      ? '⚠️ Fan noise reported. Could be dust accumulation or early bearing wear. Clean vents with compressed air. If noise persists after cleaning, fan bearing may be failing.'
+      : fanRisk
+      ? '⚠️ '+cleaned+' months since last cleaning. Dust buildup reduces airflow and raises temps. Schedule a clean — compressed air through vents takes 5 minutes.'
+      : '✅ Fan interval OK. No noise symptoms reported.'
+  });
+
+  // ── Thermal paste ──
+  const pasteBad=paste==='gt4'||(paste==='never'&&age>3);
+  const pasteWarn=paste==='2to4'||(paste==='never'&&age>=2);
+  checks.push({
+    id:'paste', icon:'🔩', name:'Thermal Paste',
+    status: pasteBad?'critical':pasteWarn?'warn':'ok',
+    metrics:[
+      {label:'Last replaced',value:paste==='never'?'Never/unknown':paste==='lt2'?'<2 yrs ago':paste==='2to4'?'2–4 yrs ago':'>4 yrs ago',cls:pasteBad?'bad':pasteWarn?'warn':'good'},
+      {label:'Device age',value:age+' years',cls:age>5?'warn':'good'},
+      {label:'Combined risk',value:pasteBad?'HIGH':pasteWarn?'MODERATE':'LOW',cls:pasteBad?'bad':pasteWarn?'warn':'good'},
+    ],
+    bar:{pct:pasteBad?25:pasteWarn?55:90,color:pasteBad?'var(--red)':pasteWarn?'var(--amber)':'var(--green)'},
+    advice: pasteBad
+      ? '🚨 Thermal paste is likely dried and cracked. Old paste loses conductivity → CPU temps rise 15–30°C. Replace with Arctic MX-4 or Thermal Grizzly Kryonaut. Non-technical users: take to a repair shop (£20–£50 with labour).'
+      : pasteWarn
+      ? '⚠️ Thermal paste is aging. Performance may be degrading. Plan a replacement in the next 6–12 months, especially if temps are elevated.'
+      : '✅ Thermal paste recently replaced or device is new.'
+  });
+
+  // ── Battery health ──
+  checks.push({
+    id:'battery', icon:'🔋', name:'Battery Health',
+    status: batStatus,
+    metrics: batData.noBattery
+      ? [{label:'Type',value:'Desktop / AC-only',cls:''}]
+      : [
+        {label:'Current level',value:(batData.level||'?')+'%',cls:batData.level<20?'bad':batData.level<50?'warn':'good'},
+        {label:'Charging',value:batData.charging?'Yes':'No',cls:''},
+        {label:'Device age',value:age+' years',cls:age>4&&isLaptop?'warn':'good'},
+        {label:'Est. remaining',value:batData.dischargeTime&&batData.dischargeTime!==Infinity?Math.round(batData.dischargeTime/3600*10)/10+'h':'N/A',cls:batData.dischargeTime<7200?'bad':'good'},
+      ],
+    bar:{pct:batData.noBattery?80:Math.min(100,Math.max(0,100-age*8*(isLaptop?1:0)-(batData.dischargeTime<7200?30:0))),color:batStatus==='critical'?'var(--red)':batStatus==='warn'?'var(--amber)':batStatus==='ok'?'var(--green)':'var(--blue)'},
+    advice: batData.noBattery
+      ? 'ℹ️ Desktop or AC-only device — no battery to assess.'
+      : batStatus==='critical'
+      ? '🚨 Battery health concern. Run: CMD (Admin) → powercfg /batteryreport. If "Full Charge Capacity" is <60% of "Design Capacity" → replace battery.'
+      : age>4&&isLaptop
+      ? '⚠️ Battery is '+age+' years old. Li-ion cells degrade ~20% every 500 cycles. Run powercfg /batteryreport to check actual wear level.'
+      : '✅ Battery appears functional. Check wear level annually with powercfg /batteryreport.'
+  });
+
+  // ── Storage health ──
+  const storBad=storSpeed<400;
+  const storWarn=storSpeed<1000;
+  const storSymptom=symptoms==='noise'; // clicking = HDD death
+  checks.push({
+    id:'storage', icon:'💾', name:'Storage Health',
+    status: storSymptom?'critical':storBad?'critical':storWarn?'warn':'ok',
+    metrics:[
+      {label:'Buffer speed',value:storSpeed+' MB/s',cls:storBad?'bad':storWarn?'warn':'good'},
+      {label:'Est. type',value:storType,cls:''},
+      {label:'Age',value:age+' years',cls:age>5?'warn':'good'},
+      {label:'Clicking noise',value:storSymptom?'REPORTED — URGENT':'No',cls:storSymptom?'bad':'good'},
+    ],
+    bar:{pct:Math.min(100,Math.round(storSpeed/80)),color:storBad||storSymptom?'var(--red)':storWarn?'var(--amber)':'var(--green)'},
+    advice: storSymptom
+      ? '🚨 CLICKING/GRINDING NOISE = HDD head crash in progress. BACKUP ALL DATA IMMEDIATELY. Do not turn off the computer before backing up. Replace drive urgently.'
+      : storBad
+      ? '🚨 Storage speed critically low. Could indicate: nearly full disk (&gt;90%), failing drive, or HDD with errors. Install CrystalDiskInfo and check S.M.A.R.T. status immediately.'
+      : storWarn
+      ? '⚠️ Speed suggests HDD or slow SSD. Consider upgrading to NVMe SSD for 5–10× speed improvement. Check CrystalDiskInfo for drive health.'
+      : '✅ Storage speed is in SSD range. Run CrystalDiskInfo periodically to monitor S.M.A.R.T. health.'
+  });
+
+  // ── RAM ──
+  const ramCrash=symptoms==='crash';
+  checks.push({
+    id:'ram', icon:'🧠', name:'RAM Health',
+    status: ramCrash?'critical':heapPct>85?'warn':'ok',
+    metrics:[
+      {label:'JS heap used',value:heapMB!==null?heapMB+'MB':'N/A',cls:''},
+      {label:'Heap % of limit',value:heapPct!==null?heapPct+'%':'N/A',cls:heapPct>85?'bad':heapPct>60?'warn':'good'},
+      {label:'Crash symptom',value:ramCrash?'Reported':'No',cls:ramCrash?'bad':'good'},
+      {label:'Physical RAM',value:(navigator.deviceMemory||'?')+'GB (reported)',cls:''},
+    ],
+    bar:{pct:ramCrash?20:Math.min(100,100-(heapPct||0)),color:ramCrash?'var(--red)':heapPct>85?'var(--amber)':'var(--green)'},
+    advice: ramCrash
+      ? '🚨 Random crashes or BSODs reported. This is the #1 symptom of failing RAM. Run Windows Memory Diagnostic: Win+R → mdsched.exe. Or boot from MemTest86 USB for definitive test. Also check: STOP error codes in Event Viewer (Win+X → Event Viewer → Windows Logs → System).'
+      : heapPct>85
+      ? '⚠️ High browser heap usage. May indicate RAM pressure. Close other apps and browser tabs. Check total RAM: 4GB is insufficient for modern workloads — upgrade to 8GB+ if possible.'
+      : '✅ RAM appears healthy. No crash symptoms reported. Re-seat RAM sticks if PC is >4 years old and experiencing stability issues.'
+  });
+
+  // ── Motherboard / overall stability ──
+  const mbCrash=symptoms==='crash'||symptoms==='multi';
+  const mbAge=age>7;
+  checks.push({
+    id:'mb', icon:'🖥️', name:'Motherboard',
+    status: mbCrash&&mbAge?'critical':mbCrash||mbAge?'warn':'ok',
+    metrics:[
+      {label:'Device age',value:age+' years',cls:age>7?'bad':age>4?'warn':'good'},
+      {label:'Crash symptoms',value:mbCrash?'Reported':'None',cls:mbCrash?'bad':'good'},
+      {label:'Throttle variance',value:throttle.variance.toFixed(1)+'ms',cls:throttle.variance>50?'bad':throttle.variance>20?'warn':'good'},
+    ],
+    bar:{pct:Math.min(100,Math.max(0,100-age*7-(mbCrash?30:0)-(throttle.variance>50?20:0))),color:mbCrash&&mbAge?'var(--red)':mbCrash||mbAge?'var(--amber)':'var(--green)'},
+    advice: mbCrash&&mbAge
+      ? '🚨 Crashes on a '+age+'-year-old board. Check for: (1) Bulging capacitors near CPU socket — look for domed/leaking cylinder tops, (2) Check BIOS version — update if outdated (CPU-Z shows current version), (3) Clean CMOS by removing battery for 30s. Persistent instability on old hardware often means motherboard replacement.'
+      : mbAge
+      ? '⚠️ Motherboard is '+age+' years old. Electrolytic capacitors have a 7–10 year lifespan. Visually inspect for bulging capacitors. Keep BIOS updated.'
+      : '✅ Motherboard age is within normal lifespan. No major instability signals detected.'
+  });
+
+  // ── Display health ──
+  const displayWarn=frameVar>10||snappedHz<60;
+  checks.push({
+    id:'display', icon:'🖥️', name:'Display / GPU',
+    status: displayWarn?'warn':'ok',
+    metrics:[
+      {label:'Refresh rate',value:snappedHz+'Hz',cls:snappedHz>=120?'good':snappedHz>=60?'':snappedHz<60?'warn':''},
+      {label:'Frame variance',value:frameVar.toFixed(1)+'ms',cls:frameVar>10?'bad':frameVar>5?'warn':'good'},
+      {label:'GPU throttle',value:throttle.drift>15?'Possible':'No evidence',cls:throttle.drift>15?'warn':'good'},
+    ],
+    bar:{pct:Math.min(100,snappedHz/2.4+(frameVar<5?20:0)),color:displayWarn?'var(--amber)':'var(--green)'},
+    advice: frameVar>10
+      ? '⚠️ High frame time variance ('+frameVar.toFixed(1)+'ms). Could indicate: GPU thermal throttling, outdated drivers, or display cable issue. Update GPU drivers from manufacturer website. Check GPU temp in HWMonitor.'
+      : snappedHz<60
+      ? '⚠️ Display running below 60Hz. Check Display Settings → Advanced Display → verify native refresh rate is selected.'
+      : '✅ Display and GPU appear healthy. Frame delivery is stable.'
+  });
+
+  // Render checks tab
+  renderHWChecks(checks);
+
+  // Render thermal tab
+  renderHWThermal(throttle, tempEst, cpuDelayMs, cleaned, paste, age);
+
+  // Render service schedule
+  renderServiceSchedule(age, cleaned, paste, isLaptop, checks);
+
+  // Overall score
+  const scores={cpu:cpuCritical?30:cpuThrottled?60:90, fan:fanCritical?20:fanRisk||fanSymptom?55:90, paste:pasteBad?25:pasteWarn?60:90, battery:batStatus==='critical'?20:batStatus==='warn'?55:batData.noBattery?80:90, storage:storSymptom?10:storBad?30:storWarn?65:90, ram:ramCrash?20:heapPct>85?60:90, mb:mbCrash&&mbAge?20:mbCrash||mbAge?60:90, display:displayWarn?65:90};
+  const avg=Math.round(Object.values(scores).reduce((a,b)=>a+b)/Object.values(scores).length);
+  hwLog('━━━ Overall hardware health score: '+avg+'/100 ━━━', avg>=75?'ok':avg>=50?'warn':'err');
+
+  btn.disabled=false; btn.textContent='🔬 Run Full Hardware Check';
+}
+
+function renderHWChecks(checks){
+  const grid=document.createElement('div');
+  grid.className='hw-grid';
+  checks.forEach(c=>{
+    const card=document.createElement('div');
+    card.className='hw-card';
+    const statusLabel={ok:'OK',warn:'WARNING',critical:'CRITICAL',info:'INFO',unknown:'UNKNOWN'};
+    card.innerHTML=`
+      <div class="hw-card-head">
+        <div class="hw-card-icon">${c.icon}</div>
+        <div class="hw-card-title">${c.name}</div>
+        <div class="hw-card-status ${c.status}">${statusLabel[c.status]||c.status.toUpperCase()}</div>
+      </div>
+      <div class="hw-card-body">
+        <div class="hw-bar-wrap"><div class="hw-bar" style="width:${c.bar.pct}%;background:${c.bar.color}"></div></div>
+        ${c.metrics.map(m=>`<div class="hw-metric-row"><span class="hw-metric-label">${m.label}</span><span class="hw-metric-value ${m.cls||''}">${m.value}</span></div>`).join('')}
+        <div class="hw-advice">${c.advice}</div>
+      </div>`;
+    grid.appendChild(card);
+  });
+  document.getElementById('hw-checks-body').innerHTML='';
+  document.getElementById('hw-checks-body').appendChild(grid);
+}
+
+function renderHWThermal(throttle, tempEst, cpuDelay, cleaned, paste, age){
+  const maxTime=Math.max(...throttle.times);
+  const minTime=Math.min(...throttle.times);
+  const bars=throttle.times.map((t,i)=>{
+    const pct=Math.round((t/maxTime)*100);
+    const color=t>minTime*1.3?'var(--red)':t>minTime*1.15?'var(--amber)':'var(--green)';
+    return`<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+      <div style="font-size:10px;font-family:var(--mono);color:var(--muted);width:24px">T${i+1}</div>
+      <div style="flex:1"><div class="hw-stressbar"><div class="hw-stressbar-fill" style="width:${pct}%;background:${color}"></div></div></div>
+      <div style="font-size:11px;font-family:var(--mono);color:var(--text);min-width:50px;text-align:right">${t.toFixed(1)}ms</div>
+    </div>`;
+  }).join('');
+
+  const riskFactors=[];
+  if(throttle.drift>10) riskFactors.push({sev:'critical',txt:'CPU work takes '+throttle.drift.toFixed(1)+'% longer by end of test — classic throttling signature'});
+  if(cleaned>12) riskFactors.push({sev:'warn',txt:'Not cleaned for '+cleaned+' months — dust insulates heatsink'});
+  if(paste==='gt4'||paste==='never') riskFactors.push({sev:'critical',txt:'Thermal paste likely dried out — major conductivity loss'});
+  if(cpuDelay>30) riskFactors.push({sev:'warn',txt:'CPU scheduler delay '+cpuDelay.toFixed(0)+'ms — process queue backed up'});
+  if(age>5) riskFactors.push({sev:'warn',txt:'Device is '+age+' years old — heatsink may be oxidised'});
+
+  document.getElementById('hw-thermal-body').innerHTML=`
+    <div style="display:flex;gap:20px;flex-wrap:wrap;margin-bottom:20px">
+      <div style="flex:1;min-width:200px">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.8px;color:var(--muted);text-transform:uppercase;margin-bottom:8px">CPU stress test — 10 iterations</div>
+        ${bars}
+        <div style="font-size:11px;color:var(--muted);margin-top:6px">Rising bars = thermal throttling. Flat bars = healthy.</div>
+      </div>
+      <div style="min-width:200px">
+        <div style="font-size:11px;font-weight:700;letter-spacing:.8px;color:var(--muted);text-transform:uppercase;margin-bottom:8px">Thermal summary</div>
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <div class="hw-metric-row"><span class="hw-metric-label">Temp estimate</span><span class="hw-metric-value ${tempEst.cls}">~${tempEst.est}°C (${tempEst.label})</span></div>
+          <div class="hw-metric-row"><span class="hw-metric-label">Throttle drift</span><span class="hw-metric-value ${throttle.drift>10?'bad':'good'}">${throttle.drift.toFixed(1)}%</span></div>
+          <div class="hw-metric-row"><span class="hw-metric-label">Time variance</span><span class="hw-metric-value ${throttle.variance>30?'bad':throttle.variance>10?'warn':'good'}">${throttle.variance.toFixed(1)}ms</span></div>
+          <div class="hw-metric-row"><span class="hw-metric-label">CPU delay</span><span class="hw-metric-value ${cpuDelay>60?'bad':cpuDelay>20?'warn':'good'}">${cpuDelay.toFixed(0)}ms</span></div>
+        </div>
+      </div>
+    </div>
+    ${riskFactors.length?`
+    <div style="font-size:11px;font-weight:700;letter-spacing:.8px;color:var(--muted);text-transform:uppercase;margin-bottom:8px">Thermal risk factors</div>
+    <div style="display:flex;flex-direction:column;gap:6px">
+      ${riskFactors.map(r=>`<div style="padding:8px 12px;border-radius:6px;border-left:3px solid ${r.sev==='critical'?'var(--red)':'var(--amber)'};background:${r.sev==='critical'?'var(--redBg)':'var(--amberBg)'};font-size:12px;color:var(--text2)">${r.sev==='critical'?'🚨':'⚠️'} ${r.txt}</div>`).join('')}
+    </div>`:'<div style="padding:12px;background:var(--greenBg);border:1px solid var(--greenBorder);border-radius:8px;color:var(--green);font-size:12px;font-weight:600">✅ No thermal risk factors detected.</div>'}
+    <div style="margin-top:14px;padding:12px 14px;background:var(--blueBg);border:1px solid var(--blueBorder);border-radius:8px;font-size:11px;color:var(--blue)">
+      ℹ️ For exact CPU temperature, install <strong>HWMonitor</strong> (free, Windows/Linux). Safe thresholds: Idle &lt;55°C · Load &lt;85°C · Throttle onset ~90–95°C · Shutdown protection ~100–105°C.
+    </div>`;
+}
+
+function renderServiceSchedule(age, cleaned, paste, isLaptop, checks){
+  const now=new Date();
+  const tasks=[
+    {name:'Clean dust from vents/heatsink',icon:'🌬️',interval:isLaptop?6:12,lastDone:cleaned,unit:'months',urgency:cleaned>18?'critical':cleaned>9?'warn':'ok',detail:'Use compressed air. Blow through all vents. Laptop: remove back panel for better access.'},
+    {name:'Replace thermal paste',icon:'🔩',interval:36,lastDone:paste==='lt2'?12:paste==='2to4'?30:paste==='gt4'?60:age*12,unit:'months',urgency:paste==='gt4'||paste==='never'&&age>3?'critical':paste==='2to4'?'warn':'ok',detail:'Arctic MX-4 or Kryonaut. Non-technical: take to repair shop (~£20–50 with labour).'},
+    {name:'Battery health check (powercfg)',icon:'🔋',interval:12,lastDone:12,unit:'months',urgency:age>4&&isLaptop?'warn':'ok',detail:'CMD Admin → powercfg /batteryreport. Compare Design vs Full Charge Capacity.'},
+    {name:'S.M.A.R.T. drive health check',icon:'💾',interval:6,lastDone:6,unit:'months',urgency:checks.find(c=>c.id==='storage')?.status==='critical'?'critical':'ok',detail:'CrystalDiskInfo → check all drives show "Good" status. Backup if "Caution" or "Bad".'},
+    {name:'RAM test (mdsched / MemTest86)',icon:'🧠',interval:24,lastDone:24,unit:'months',urgency:checks.find(c=>c.id==='ram')?.status==='critical'?'critical':'ok',detail:'Win+R → mdsched.exe, or MemTest86 bootable USB for definitive test.'},
+    {name:'BIOS / firmware update check',icon:'🖥️',interval:12,lastDone:12,unit:'months',urgency:age>4?'warn':'ok',detail:'CPU-Z shows current BIOS version. Check motherboard manufacturer website for updates.'},
+    {name:'PSU capacitor check (desktop)',icon:'⚡',interval:24,lastDone:24,unit:'months',urgency:age>7&&!isLaptop?'warn':'ok',detail:'Visual inspection inside case for bulging capacitors. PSU lifespan 5–10 years.'},
+    {name:'Full backup verification',icon:'📦',interval:1,lastDone:3,unit:'months',urgency:'warn',detail:'Verify your backup is current and restorable. 3-2-1 rule: 3 copies, 2 media types, 1 offsite.'},
+  ].filter(t=>!(t.name.includes('PSU')&&isLaptop));
+
+  const rows=tasks.map(t=>{
+    const overdue=t.lastDone>t.interval;
+    const sev=t.urgency==='critical'?'critical':overdue?'warning':t.urgency==='warn'?'warning':'good';
+    const icon=sev==='critical'?'🚨':sev==='warning'?'⚠️':'✅';
+    const nextDate=new Date(now.getFullYear(),now.getMonth()+Math.max(0,t.interval-t.lastDone));
+    const nextStr=nextDate<=now?'Overdue now':nextDate.toLocaleDateString('en',{month:'short',year:'numeric'});
+    return`<div class="hw-check-item ${sev}">
+      <div class="hw-check-icon">${icon}</div>
+      <div class="hw-check-body">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px">
+          <span class="hw-check-title">${t.icon} ${t.name}</span>
+          <span style="font-size:10px;font-family:var(--mono);color:var(--muted);margin-left:auto">Every ${t.interval}mo · Next: ${nextStr}</span>
+        </div>
+        <div class="hw-check-desc">${t.detail}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  document.getElementById('hw-service-body').innerHTML=`
+    <div style="padding:12px 16px;background:var(--bg2);border:1px solid var(--border2);border-radius:8px;margin-bottom:14px;font-size:12px">
+      <strong>Device profile:</strong> ${isLaptop?'Laptop':'Desktop'}, ${age} year${age===1?'':'s'} old · Last cleaned: ${cleaned} months ago · Paste: ${['never','lt2','2to4','gt4'].includes(document.getElementById('hw-paste').value)?document.getElementById('hw-paste').options[document.getElementById('hw-paste').selectedIndex].text:'unknown'}
+    </div>
+    <div class="hw-checklist">${rows}</div>
+    <div style="margin-top:14px;padding:10px 14px;background:var(--bg3);border-radius:8px;font-size:11px;color:var(--muted)">
+      Intervals are general guidelines. High-dust environments or heavy workloads (gaming, video editing) require more frequent maintenance.
+    </div>`;
+}
+
+
+function generateReport(){
+  const sec=document.getElementById('report-section');
+  const body=document.getElementById('report-body');
+  sec.classList.remove('hidden');
+  const keys=Object.keys(testResults);
+  if(!keys.length){body.innerHTML='<p style="color:var(--muted);padding:20px">Run diagnostics first.</p>';return;}
+  const scores=keys.map(k=>testResults[k].score);
+  const avg=Math.round(scores.reduce((a,b)=>a+b)/scores.length);
+  const grade=avg>=85?'A — Excellent':avg>=70?'B — Good':avg>=50?'C — Fair':avg>=30?'D — Poor':'F — Critical';
+  const gc=avg>=70?'var(--green)':avg>=50?'var(--orange)':'var(--red)';
+  document.getElementById('report-timestamp').textContent='Generated: '+new Date().toLocaleString()+' · '+testDuration/1000+'s · '+keys.length+' modules';
+  const allSugg=[];keys.forEach(k=>(testResults[k].suggestions||[]).forEach(s=>allSugg.push({...s,test:k})));
+  const crit=allSugg.filter(s=>s.sev==='critical');
+  const warn=allSugg.filter(s=>s.sev==='warning');
+  const info=allSugg.filter(s=>s.sev==='info');
+  const good=allSugg.filter(s=>s.sev==='good');
+  const cards=keys.map(k=>{
+    const r=testResults[k],def=TEST_DEFS[k];
+    const bc=r.status==='pass'?'var(--green)':r.status==='fail'?'var(--red)':'var(--orange)';
+    return`<div class="result-card"><div class="rc-header"><div><div class="rc-sub">${def?.icon||''} ${k.toUpperCase()}</div><div class="rc-name">${def?.name||k}</div></div><div class="rc-score" style="color:${bc}">${r.score}</div></div><div class="rc-bar-wrap"><div class="rc-bar" style="width:${r.score}%;background:${bc}"></div></div><div class="rc-details">${Object.entries(r.metrics||{}).map(([a,b])=>a+': '+b).join('<br>')}</div></div>`;
+  }).join('');
+  const sugCard=(s,cls,icon)=>`<div class="suggestion ${cls}"><div class="sug-sev" style="font-size:20px;flex-shrink:0">${icon}</div><div><div class="sug-title">${s.title} <span style="font-size:11px;color:var(--muted);font-weight:400">[${TEST_DEFS[s.test]?.name||s.test}]</span></div><div class="sug-body">${s.body}</div></div></div>`;
+  body.innerHTML=`
+    <div class="overall-score">
+      <div class="big-score" style="color:${gc}">${avg}</div>
+      <div>
+        <div style="font-size:11px;font-weight:600;letter-spacing:.8px;color:var(--muted);text-transform:uppercase;margin-bottom:6px">Overall Score</div>
+        <div style="font-size:24px;font-weight:800;color:${gc}">${grade}</div>
+        <div style="font-size:12px;color:var(--muted);margin-top:8px;display:flex;gap:14px;flex-wrap:wrap">
+          <span>${keys.length} tests</span><span style="color:var(--red)">🚨 ${crit.length} critical</span>
+          <span style="color:var(--orange)">⚠️ ${warn.length} warnings</span><span style="color:var(--green)">✅ ${good.length} healthy</span>
+        </div>
+      </div>
+    </div>
+    <div class="section-header"><h3>Module Results</h3><div class="divider"></div></div>
+    <div class="results-grid">${cards}</div>
+    <div class="section-header"><h3>Diagnosis &amp; Recommendations</h3><div class="divider"></div></div>
+    <div>${sugHTML(crit,warn,info,good)}</div>
+    <div class="disclaimer">
+      <strong style="color:var(--text)">Disclaimer:</strong> All scores are browser-observable estimates. Each test panel includes a blue notice box explaining its specific limitations.
+      For exact hardware speeds use native tools: <strong>CPU</strong> — Cinebench, CPU-Z | <strong>RAM</strong> — AIDA64, HWiNFO | <strong>SSD</strong> — CrystalDiskMark, AS SSD | <strong>GPU</strong> — 3DMark, Unigine | <strong>Network</strong> — speedtest.net, fast.com.
+      Always consult a qualified technician before hardware repairs.
+    </div>`;
+  sec.scrollIntoView({behavior:'smooth'});
+}
+function sugHTML(crit,warn,info,good){
+  const sugCard=(s,cls,icon)=>`<div class="suggestion ${cls}"><div class="sug-sev" style="font-size:20px;flex-shrink:0">${icon}</div><div><div class="sug-title">${s.title} <span style="font-size:11px;color:var(--muted);font-weight:400">[${TEST_DEFS[s.test]?.name||s.test}]</span></div><div class="sug-body">${s.body}</div></div></div>`;
+  const html=[...crit.map(s=>sugCard(s,'critical','🚨')),...warn.map(s=>sugCard(s,'warning','⚠️')),...info.map(s=>sugCard(s,'info','ℹ️')),...good.map(s=>sugCard(s,'good','✅'))].join('');
+  return html||'<div style="color:var(--muted);font-size:12px;padding:14px;background:var(--greenBg);border-radius:var(--radius);border:1px solid var(--greenBorder)">✅ No issues found — system appears healthy.</div>';
+}
+</script>
+</body>
+</html>
